@@ -1,0 +1,2499 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#0d1321">
+<title>מניין של אחד — עוזר תפילה ליחיד</title>
+
+<!-- התקנה כאפליקציה -->
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="מניין של אחד">
+<meta name="description" content="עוזר תפילה למתפלל ביחיד: קצב אישי, לוח עברי ותזכורות הזכרות. נוסח חב״ד.">
+<style>
+  :root{
+    --bg:#0d1321; --card:#1a2236; --card2:#232e4a; --line:#2e3b5e;
+    --gold:#d9b45b; --gold-soft:#b89a52; --text:#e8e6df; --dim:#8d94a8;
+    --green:#6fbf8f; --blue:#7aa2d6;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{margin:0; padding:0; background:var(--bg); color:var(--text);
+    font-family:"Segoe UI","Noto Sans Hebrew","Arial Hebrew",Arial,sans-serif;}
+  #app{max-width:520px; margin:0 auto; min-height:100vh;
+    padding:calc(16px + env(safe-area-inset-top)) 16px calc(40px + env(safe-area-inset-bottom));}
+  /* פס התקנה */
+  .installBar{display:none; align-items:center; gap:10px; background:var(--card2);
+    border:1px solid var(--gold-soft); border-radius:14px; padding:12px 14px; margin-top:14px;}
+  .installBar.show{display:flex;}
+  .installBar .t{flex:1; font-size:.88rem;}
+  .installBar .x{background:none;border:none;color:var(--dim);font-size:1.1rem;cursor:pointer;padding:0 4px;}
+  h1{font-size:1.35rem; margin:0; letter-spacing:.5px;}
+  .sub{color:var(--dim); font-size:.85rem; margin-top:2px;}
+  .card{background:var(--card); border:1px solid var(--line); border-radius:16px; padding:14px 16px; margin-top:14px;}
+  .chips{display:flex; flex-wrap:wrap; gap:6px; margin-top:10px;}
+  .chip{background:var(--card2); border:1px solid var(--line); color:var(--text);
+    border-radius:999px; padding:4px 12px; font-size:.8rem;}
+  .chip.imp{border-color:var(--gold-soft); color:var(--gold);}
+  .tefBtn{display:flex; align-items:center; justify-content:space-between; width:100%;
+    background:linear-gradient(135deg,var(--card2),var(--card)); border:1px solid var(--line);
+    color:var(--text); border-radius:16px; padding:16px; margin-top:12px; font-size:1.1rem; cursor:pointer;}
+  .tefBtn .n{font-weight:700;}
+  .tefBtn .m{color:var(--dim); font-size:.85rem;}
+  .minIn{width:56px; background:var(--bg); color:var(--gold); border:1px solid var(--line);
+    border-radius:10px; padding:6px 4px; text-align:center; font-size:1rem;}
+  .row{display:flex; align-items:center; justify-content:space-between; gap:10px;}
+  .startBtn{background:var(--gold); color:#1a1a10; border:none; border-radius:12px;
+    padding:10px 22px; font-size:1rem; font-weight:700; cursor:pointer;}
+  label.sw{display:flex; align-items:center; gap:8px; font-size:.9rem; color:var(--dim); cursor:pointer;}
+  /* prayer screen */
+  .topbar{display:flex; justify-content:space-between; align-items:center;}
+  .exit{background:none; border:1px solid var(--line); color:var(--dim); border-radius:10px; padding:6px 12px; cursor:pointer;}
+  .ctrls{display:flex; gap:8px;}
+  .ico{background:var(--card2); border:1px solid var(--line); color:var(--text);
+    border-radius:10px; width:40px; height:34px; font-size:1rem; cursor:pointer; line-height:1;}
+  .ico:active{transform:scale(.94);}
+  .pauseOv{position:fixed; inset:0; background:rgba(13,19,33,.94); z-index:50;
+    display:flex; align-items:center; justify-content:center; text-align:center;}
+  .pauseBox{padding:24px;}
+  .startFrom{background:var(--card); border:1px solid var(--line); border-radius:14px;
+    padding:12px 14px; margin-top:8px;}
+  .startFrom .m{color:var(--dim); font-size:.82rem;}
+  .chip.pick{cursor:pointer; white-space:nowrap;}
+  .chip.pick.on{background:var(--gold); color:#1a1a10; border-color:var(--gold); font-weight:700;}
+  .rangeRow{display:flex; align-items:center; gap:8px; margin-bottom:8px;}
+  .rLbl{color:var(--dim); font-size:.82rem; flex:none; width:26px;}
+  .chips.scrollX{flex-wrap:nowrap; overflow-x:auto; margin-top:0; padding-bottom:2px;
+    -webkit-overflow-scrolling:touch; scrollbar-width:none;}
+  .chips.scrollX::-webkit-scrollbar{display:none;}
+  .clockWrap{text-align:center; margin-top:8px;}
+  .clock{font-size:2.7rem; font-variant-numeric:tabular-nums; font-weight:300; letter-spacing:2px;}
+  .clock.over{color:#e0a06a;}
+  .remain{color:var(--dim); font-size:.85rem; margin-top:-2px;}
+  .barWrap{background:var(--card2); border-radius:999px; height:10px; margin:12px 0 4px; overflow:hidden;}
+  .bar{height:100%; background:linear-gradient(90deg,var(--gold-soft),var(--gold)); width:0%; border-radius:999px; transition:width .5s linear;}
+  .quote{background:var(--card); border:1px solid var(--line); border-radius:14px; padding:12px 16px;
+    margin-top:12px; min-height:78px; display:flex; flex-direction:column; justify-content:center;
+    transition:opacity .6s;}
+  .quote .q{font-size:.98rem; line-height:1.5;}
+  .quote .s{color:var(--gold); font-size:.78rem; margin-top:6px;}
+  /* groups */
+  .grp{background:var(--card); border:1px solid var(--line); border-radius:14px; margin-top:10px; overflow:hidden;}
+  .grp.cur{border-color:var(--gold-soft);}
+  .grpHdr{display:flex; align-items:center; gap:10px; padding:12px 14px; cursor:pointer; position:relative;}
+  .grpHdr .gdot{width:12px; height:12px; border-radius:50%; background:var(--line); flex:none;}
+  .grp.done .gdot{background:var(--green);}
+  .grp.cur .gdot{background:var(--gold);}
+  .grpHdr .gnm{flex:1; font-weight:700; font-size:1rem;}
+  .grp.done .gnm{color:var(--dim);}
+  .grpHdr .gtm{color:var(--dim); font-size:.78rem; font-variant-numeric:tabular-nums;}
+  .grpHdr .arr{color:var(--dim); font-size:.75rem; transition:transform .2s;}
+  .grp.open .arr{transform:rotate(90deg);}
+  .grpBar{height:3px; background:var(--card2);}
+  .grpBar>div{height:100%; background:var(--gold); width:0%;}
+  .grpBody{display:none; border-top:1px solid var(--line);}
+  .grp.open .grpBody{display:block;}
+  .sec{display:flex; align-items:center; gap:10px; padding:9px 14px 9px 12px; cursor:pointer; position:relative;
+    padding-inline-start:26px;}
+  .sec .dot{width:8px; height:8px; border-radius:50%; background:var(--line); flex:none;}
+  .sec.done .dot{background:var(--green);}
+  .sec.cur{background:var(--card2);}
+  .sec.cur .dot{background:var(--gold);}
+  .sec .nm{flex:1; font-size:.92rem;}
+  .sec.done .nm{color:var(--dim);}
+  .sec .tm{color:var(--dim); font-size:.74rem; font-variant-numeric:tabular-nums;}
+  .sec .badge{display:inline-block; background:#3a2f14; color:var(--gold); border:1px solid var(--gold-soft);
+    border-radius:8px; font-size:.68rem; padding:1px 6px; margin-inline-start:6px; vertical-align:1px;}
+  .secbar{position:absolute; bottom:0; right:26px; left:14px; height:2px; background:var(--line); border-radius:2px; overflow:hidden; opacity:0;}
+  .sec.cur .secbar{opacity:1;}
+  .secbar>div{height:100%; background:var(--gold); width:0%;}
+  /* ----- חלון "בוצע" ----- */
+  .drawer{background:var(--card); border:1px solid var(--line); border-radius:14px; margin-top:14px; overflow:hidden;}
+  .drawerHdr{display:flex; align-items:center; gap:10px; padding:11px 14px; cursor:pointer;}
+  .drawerHdr .dv{color:var(--green); font-size:.95rem;}
+  .drawerHdr .dnm{flex:1; color:var(--dim); font-size:.9rem;}
+  .drawerHdr .dtm{color:var(--dim); font-size:.8rem; font-variant-numeric:tabular-nums;}
+  .drawerHdr .arr{color:var(--dim); font-size:.7rem; transition:transform .2s;}
+  .drawer.open .arr{transform:rotate(-90deg);}
+  .drawerBody{display:none; border-top:1px solid var(--line); padding:4px 0;}
+  .drawer.open .drawerBody{display:block;}
+  .dRow{display:flex; align-items:center; gap:10px; padding:7px 14px; cursor:pointer; font-size:.88rem;}
+  .dRow:active{background:var(--card2);}
+  .dRow .dv{color:var(--green); font-size:.8rem;}
+  .dRow .dnm{flex:1; color:var(--dim); text-decoration:line-through; text-decoration-color:#4a5570;
+    overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+  .dRow .dtm{color:var(--dim); font-size:.76rem; font-variant-numeric:tabular-nums;}
+  /* ----- הקטע הנוכחי ----- */
+  .curCard{background:linear-gradient(135deg,var(--card2),var(--card));
+    border:1px solid var(--gold-soft); border-radius:16px; padding:14px 16px; margin-top:14px;
+    box-shadow:0 0 0 3px rgba(217,180,91,.07);}
+  .curTop{display:flex; justify-content:space-between; align-items:center;}
+  .curGrp{color:var(--gold); font-size:.78rem; letter-spacing:.4px;}
+  .curPlan{color:var(--dim); font-size:.76rem;}
+  .curNm{font-size:1.25rem; font-weight:700; line-height:1.35; margin:6px 0 12px;}
+  .curBar{background:rgba(0,0,0,.28); border-radius:999px; height:6px; overflow:hidden;}
+  .curBar>div{height:100%; width:0%; background:var(--gold); border-radius:999px; transition:width .5s linear;}
+  .curBot{display:flex; justify-content:space-between; align-items:center; margin-top:12px;}
+  .curElapsed{color:var(--dim); font-size:.9rem; font-variant-numeric:tabular-nums;}
+  .doneBtn{background:var(--gold); color:#1a1a10; border:none; border-radius:10px;
+    padding:9px 20px; font-size:.95rem; font-weight:700; cursor:pointer;}
+  .doneBtn:active{transform:scale(.96);}
+  .curBtns{display:flex; gap:8px; align-items:center;}
+  .holdBtn{background:var(--card); border:1px solid var(--line); color:var(--text);
+    border-radius:10px; width:42px; height:38px; font-size:1.05rem; cursor:pointer; line-height:1;}
+  .holdBtn.on{background:#3a2f14; border-color:var(--gold); color:var(--gold);}
+  .holdBtn:active{transform:scale(.95);}
+  .curNote{font-size:.76rem; margin-top:8px; min-height:0; line-height:1.4;}
+  .curNote.warn{color:#e0a06a;}
+  .curNote.hold{color:var(--gold);}
+  .curElapsed.over{color:#e0a06a;}
+  .studyBtn{background:var(--card); border:1px solid var(--line); color:var(--text);
+    border-radius:10px; padding:9px 14px; font-size:.88rem; cursor:pointer;}
+  .studyBtn:active{background:var(--bg);}
+  /* ----- מסך לימוד ----- */
+  .sheetOv{position:fixed; inset:0; z-index:60; background:rgba(5,8,16,.72);
+    display:flex; align-items:flex-end; justify-content:center;}
+  .sheet{background:var(--card); border:1px solid var(--line); border-bottom:none;
+    border-radius:20px 20px 0 0; width:100%; max-width:520px; max-height:88vh;
+    display:flex; flex-direction:column; animation:up .22s ease-out;}
+  @keyframes up{from{transform:translateY(30px); opacity:.4;} to{transform:none; opacity:1;}}
+  .sheetGrab{width:40px; height:4px; background:var(--line); border-radius:2px; margin:9px auto 4px;}
+  .sheetHdr{display:flex; align-items:flex-start; justify-content:space-between; padding:6px 16px 10px;}
+  .sheetGrp{color:var(--gold); font-size:.75rem;}
+  .sheetNm{font-size:1.12rem; font-weight:700; line-height:1.35; margin-top:2px;}
+  .sheetX{background:none; border:none; color:var(--dim); font-size:1.2rem; cursor:pointer; padding:0 4px;}
+  .tabs{display:flex; gap:6px; padding:0 16px 10px; border-bottom:1px solid var(--line);}
+  .tab{flex:1; background:var(--bg); border:1px solid var(--line); color:var(--dim);
+    border-radius:10px; padding:8px 4px; font-size:.85rem; cursor:pointer;}
+  .tab.on{background:var(--card2); border-color:var(--gold-soft); color:var(--gold); font-weight:700;}
+  .sheetBody{overflow-y:auto; padding:14px 16px calc(20px + env(safe-area-inset-bottom));
+    -webkit-overflow-scrolling:touch;}
+  .pane{display:none;}
+  .pane.on{display:block;}
+  .pane p{margin:0; line-height:1.75; font-size:.97rem;}
+  .srcLine{color:var(--dim); font-size:.78rem; margin-top:10px; padding-top:8px; border-top:1px dashed var(--line);}
+  .wRow{display:flex; gap:12px; padding:9px 0; border-bottom:1px solid rgba(46,59,94,.45);}
+  .wRow:last-child{border-bottom:none;}
+  .wW{min-width:36%; color:var(--gold); font-size:.95rem; line-height:1.5;}
+  .wM{flex:1; font-size:.92rem; line-height:1.55; color:var(--text);}
+  .ladderNote{margin-top:18px; background:var(--bg); border:1px solid var(--line);
+    border-radius:12px; padding:12px 14px; font-size:.85rem; line-height:1.65; color:var(--dim);}
+  .ladderNote b{color:var(--gold);}
+  .disclaim{color:var(--dim); font-size:.75rem; text-align:center; margin-top:14px; line-height:1.5;}
+  .curCard.rt{border-color:var(--blue); box-shadow:0 0 0 3px rgba(122,162,214,.09);}
+  .curCard.rt .curGrp{color:var(--blue);}
+  .curCard.rt .curBar>div{background:var(--blue);}
+  .rtBtn{width:100%; margin-top:10px; background:var(--card); border:1px dashed var(--line);
+    color:var(--dim); border-radius:12px; padding:11px; font-size:.9rem; cursor:pointer;}
+  .rtBtn:active{background:var(--card2);}
+  .rtBtn.back{border-style:solid; border-color:var(--blue); color:var(--blue);}
+  /* ----- הבא בתור ----- */
+  .upList{margin-top:6px;}
+  .upGrp{color:var(--dim); font-size:.76rem; letter-spacing:.5px; padding:14px 4px 5px;}
+  .upRow{position:relative; overflow:hidden; border-radius:12px; margin-bottom:2px;}
+  .upRow .swipeBg{position:absolute; inset:0; display:flex; align-items:center; justify-content:flex-start;
+    padding-inline-start:18px; background:#20402f; color:var(--green); font-size:.85rem; border-radius:12px;}
+  .upRow .upIn{position:relative; display:flex; align-items:center; gap:10px; padding:11px 12px;
+    background:var(--card); border:1px solid var(--line); border-radius:12px; cursor:pointer;}
+  .upRow:active .upIn{background:var(--card2);}
+  .upRow.swiping .upIn{background:#243a2e;}
+  .upDot{width:7px; height:7px; border-radius:50%; background:var(--line); flex:none;}
+  .upNm{flex:1; font-size:.94rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+  .upTm{color:var(--dim); font-size:.76rem; font-variant-numeric:tabular-nums;}
+  .hint{color:var(--dim); font-size:.78rem; text-align:center; margin-top:10px;}
+  .finishBtn{width:100%; margin-top:16px; background:var(--card2); border:1px solid var(--gold-soft);
+    color:var(--gold); border-radius:14px; padding:14px; font-size:1.05rem; cursor:pointer;}
+  .awayLine{font-size:.76rem; margin-top:4px; color:#e0a06a; display:none;}
+  .awayLine.on{display:block;}
+  .pace{font-size:.82rem; margin-top:6px;}
+  .pace.ok{color:var(--green);}
+  .pace.fast{color:var(--blue);}
+  .pace.slow{color:#e0a06a;}
+  .big{font-size:2.4rem; margin:10px 0 4px; color:var(--gold); font-variant-numeric:tabular-nums;}
+  .logHead{display:flex; gap:8px; color:var(--dim); font-size:.75rem; padding:6px 8px; border-bottom:1px solid var(--line);}
+  .logHead>div:first-child{flex:1;}
+  .logHead>div:not(:first-child){width:62px; text-align:center;}
+  .logRow{display:flex; gap:8px; align-items:center; padding:7px 8px; border-bottom:1px solid rgba(46,59,94,.4); font-size:.86rem;}
+  .logRow:last-child{border-bottom:none;}
+  .logRow .ln{flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+  .logRow .lt{width:62px; text-align:center; color:var(--dim); font-variant-numeric:tabular-nums;}
+  .logRow .ld{width:62px; text-align:center; font-variant-numeric:tabular-nums; font-size:.8rem;}
+  .logRow .ld.ok{color:var(--green);}
+  .logRow .ld.fast{color:var(--blue);}
+  .logRow .ld.slow{color:#e0a06a;}
+  .logRow.skip{opacity:.45;}
+  .logRow.skip .ld{color:var(--dim); font-size:.72rem;}
+  /* ----- מסך חזרה לתפילה ----- */
+  .backOv{position:fixed; inset:0; z-index:70; background:rgba(13,19,33,.96);
+    display:flex; align-items:center; justify-content:center; text-align:center;}
+  .backBox{padding:26px;}
+  .backT{font-size:1.15rem; margin-top:10px;}
+  .backBig{font-size:2.6rem; color:#e0a06a; font-variant-numeric:tabular-nums; margin:6px 0 2px;}
+  .backNm{color:var(--gold); font-size:.95rem; margin-top:14px;}
+  /* ----- ריכוז בסיכום ----- */
+  .focus{border-width:1px;}
+  .focus.good{border-color:var(--green);}
+  .focus.mid{border-color:#c9a24a;}
+  .focus.low{border-color:#e0a06a;}
+  .focusTop{display:flex; justify-content:space-between; align-items:baseline; margin-bottom:8px;}
+  .focusBig{font-size:1.7rem; font-weight:700;}
+  .focus.good .focusBig{color:var(--green);}
+  .focus.mid .focusBig{color:#d9b45b;}
+  .focus.low .focusBig{color:#e0a06a;}
+  .focusRow{display:flex; justify-content:space-between; font-size:.88rem; padding:4px 0; color:var(--dim);}
+  .focusRow b{color:var(--text); font-variant-numeric:tabular-nums;}
+  /* ----- היסטוריה ----- */
+  .hStats{display:flex; gap:8px; margin:12px 0 10px;}
+  .hStats>div{flex:1; background:var(--bg); border:1px solid var(--line); border-radius:10px;
+    padding:8px 4px; text-align:center;}
+  .hStats b{display:block; font-size:1.05rem; color:var(--gold); font-variant-numeric:tabular-nums;}
+  .hStats span{color:var(--dim); font-size:.7rem;}
+  .hRow{display:flex; align-items:center; gap:8px; padding:6px 2px; font-size:.85rem;
+    border-bottom:1px solid rgba(46,59,94,.4);}
+  .hRow:last-child{border-bottom:none;}
+  .hD{width:78px; color:var(--dim); font-size:.78rem;}
+  .hT{flex:1;}
+  .hM{color:var(--dim); font-variant-numeric:tabular-nums; font-size:.8rem;}
+  .hP{width:44px; text-align:left; font-variant-numeric:tabular-nums; font-size:.8rem;}
+  .hP.good{color:var(--green);} .hP.mid{color:#d9b45b;} .hP.low{color:#e0a06a;}
+  .openCard{border-color:var(--gold-soft); background:linear-gradient(135deg,var(--card2),var(--card));}
+  /* ===== פאנל מוטמע ===== */
+  .panel{background:var(--card); border:1px solid var(--line); border-radius:16px;
+    margin-top:10px; overflow:hidden;}
+  .panTop{display:flex; align-items:center; justify-content:space-between; gap:8px;
+    padding:9px 12px; border-bottom:1px solid var(--line); background:var(--card2);}
+  .panLbl{color:var(--gold); font-size:.8rem;}
+  .panBody{padding:16px 16px 6px; max-height:52vh; overflow-y:auto; -webkit-overflow-scrolling:touch;}
+  .panBody .tP{margin:0 0 16px; line-height:2.05; text-align:justify;}
+  .panBody .tHint{margin:0 0 12px;}
+  .panSec{color:var(--gold); font-size:.82rem; margin:16px 0 6px; padding-top:10px;
+    border-top:1px solid var(--line);}
+  .panEmpty{color:var(--dim); text-align:center; padding:22px 10px; line-height:1.7; font-size:.9rem;}
+  .panNav{display:flex; align-items:center; gap:8px; padding:10px 12px;
+    border-top:1px solid var(--line); background:var(--card2);}
+  .panBtn{flex:1; background:var(--card); border:1px solid var(--line); color:var(--text);
+    border-radius:11px; padding:11px 0; font-size:.92rem; cursor:pointer;}
+  .panBtn.go{background:var(--gold); color:#1a1a10; border-color:var(--gold); font-weight:700;}
+  .panBtn:disabled{opacity:.35;}
+  .panPos{color:var(--dim); font-size:.78rem; font-variant-numeric:tabular-nums; flex:none; min-width:56px; text-align:center;}
+  /* ===== מסך קריאת הטקסט ===== */
+  .textOv{position:fixed; inset:0; z-index:65; background:var(--bg);
+    display:flex; flex-direction:column;}
+  .tTop{display:flex; align-items:center; gap:8px; padding:calc(10px + env(safe-area-inset-top)) 12px 10px;
+    border-bottom:1px solid var(--line); background:var(--card);}
+  .tTitle{flex:1; font-size:.95rem; font-weight:700; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+  .tClock{color:var(--dim); font-size:.8rem; font-variant-numeric:tabular-nums; flex:none;}
+  .tClock.over{color:#e0a06a;}
+  .tFs{background:var(--card2); border:1px solid var(--line); color:var(--text);
+    border-radius:9px; width:38px; height:32px; font-size:.85rem; cursor:pointer; flex:none;}
+  .tBody{flex:1; overflow-y:auto; padding:18px 18px 30px; -webkit-overflow-scrolling:touch;}
+  .tP{margin:0 0 18px; line-height:2.05; text-align:justify; color:var(--text);}
+  .tHint{color:var(--gold); font-size:.78em; margin:0 0 10px; padding-inline-start:10px;
+    border-inline-start:2px solid var(--gold-soft); line-height:1.5;}
+  .tFoot{padding:10px 14px calc(12px + env(safe-area-inset-bottom)); border-top:1px solid var(--line); background:var(--card);}
+  .tDone{width:100%; background:var(--gold); color:#1a1a10; border:none; border-radius:12px;
+    padding:13px; font-size:1rem; font-weight:700; cursor:pointer;}
+  /* ===== ניווט תחתון ===== */
+  .navSpacer{height:78px;}
+  .navBar{position:fixed; bottom:0; right:0; left:0; z-index:30;
+    display:flex; background:rgba(16,22,38,.97); border-top:1px solid var(--line);
+    padding:6px 0 calc(6px + env(safe-area-inset-bottom)); backdrop-filter:blur(8px);}
+  .navBtn{flex:1; background:none; border:none; color:var(--dim); cursor:pointer;
+    display:flex; flex-direction:column; align-items:center; gap:2px; font-size:.72rem; padding:6px 0;}
+  .navIco{font-size:1.25rem; line-height:1;}
+  .navBtn.on{color:var(--gold);}
+  /* ===== בחירת תפילה ===== */
+  .dateCard{margin-top:12px;}
+  .pickList{margin-top:14px; display:flex; flex-direction:column; gap:10px;}
+  .tefPick{display:flex; align-items:center; gap:14px; width:100%; text-align:right; cursor:pointer;
+    background:linear-gradient(135deg,var(--card2),var(--card)); border:1px solid var(--line);
+    color:var(--text); border-radius:16px; padding:16px;}
+  .tefPick:active{transform:scale(.99); border-color:var(--gold-soft);}
+  .tpIco{font-size:1.6rem; line-height:1;}
+  .tpTxt{flex:1; display:flex; flex-direction:column;}
+  .tpTxt b{font-size:1.12rem;}
+  .tpTxt span{color:var(--dim); font-size:.8rem; margin-top:2px;}
+  .tpArr{color:var(--dim); font-size:1.3rem;}
+  /* ===== אשף ===== */
+  .wizWrap{min-height:100vh; display:flex; flex-direction:column; padding-bottom:20px;}
+  .wizTop{display:flex; align-items:center; gap:12px; padding:4px 0 18px;}
+  .wizBack{background:var(--card2); border:1px solid var(--line); color:var(--text);
+    width:38px; height:34px; border-radius:10px; font-size:1.05rem; cursor:pointer;}
+  .wizTitle{flex:1; font-size:1.1rem; font-weight:700;}
+  .wizDots{display:flex; gap:5px;}
+  .wizDots span{width:7px; height:7px; border-radius:50%; background:var(--line);}
+  .wizDots span.on{background:var(--gold); width:18px; border-radius:4px;}
+  .wizDots span.pastd{background:var(--gold-soft);}
+  .wizQ{font-size:1.35rem; font-weight:700; margin:6px 0 16px;}
+  .bigOpt{display:flex; align-items:center; gap:14px; width:100%; text-align:right; cursor:pointer;
+    background:var(--card); border:1px solid var(--line); color:var(--text);
+    border-radius:16px; padding:18px 16px; margin-bottom:12px;}
+  .bigOpt.sel{border-color:var(--gold); background:linear-gradient(135deg,var(--card2),var(--card));
+    box-shadow:0 0 0 3px rgba(217,180,91,.08);}
+  .boIco{font-size:1.7rem;}
+  .boTxt{flex:1; display:flex; flex-direction:column;}
+  .boTxt b{font-size:1.1rem;}
+  .boTxt span{color:var(--dim); font-size:.8rem; margin-top:3px; line-height:1.45;}
+  .segLbl{color:var(--dim); font-size:.82rem; margin:14px 2px 7px;}
+  .segList{display:flex; flex-wrap:wrap; gap:7px;}
+  .seg{background:var(--card); border:1px solid var(--line); color:var(--text);
+    border-radius:11px; padding:9px 13px; font-size:.88rem; cursor:pointer;}
+  .seg.sel{background:var(--gold); color:#1a1a10; border-color:var(--gold); font-weight:700;}
+  .seg.dim{opacity:.35;}
+  .minBig{text-align:center; margin:10px 0 14px;}
+  .minBig span{font-size:3.4rem; color:var(--gold); font-weight:300; font-variant-numeric:tabular-nums;}
+  .minBig small{display:block; color:var(--dim); font-size:.85rem; margin-top:-6px;}
+  .minRow{display:flex; gap:8px; margin-bottom:14px;}
+  .minBtn{flex:1; background:var(--card2); border:1px solid var(--line); color:var(--text);
+    border-radius:12px; padding:12px 0; font-size:1rem; cursor:pointer;}
+  .minBtn:active{background:var(--card);}
+  .sumRow{display:flex; justify-content:space-between; padding:5px 0; font-size:.9rem; color:var(--dim);}
+  .sumRow b{color:var(--text);}
+  .wizNext,.wizGo{margin-top:auto; width:100%; border:none; border-radius:14px;
+    padding:16px; font-size:1.05rem; font-weight:700; cursor:pointer;}
+  .wizNext{background:var(--card2); color:var(--gold); border:1px solid var(--gold-soft);}
+  .wizGo{background:var(--gold); color:#1a1a10;}
+  .wizNext:active,.wizGo:active{transform:scale(.99);}
+  .doneWrap{text-align:center; padding-top:8vh;}
+  .doneWrap .big{font-size:2.4rem; margin:12px 0 4px; color:var(--gold);}
+  .pasuk{color:var(--dim); line-height:1.7; margin-top:22px; font-size:.95rem;}
+  .homeBtn{margin-top:30px; background:var(--gold); color:#1a1a10; border:none; border-radius:12px; padding:12px 30px; font-size:1rem; font-weight:700; cursor:pointer;}
+  .note{color:var(--dim); font-size:.8rem; line-height:1.5; margin-top:14px;}
+  .shabbat{text-align:center; padding-top:14vh;}
+  .shabbat .c{font-size:3rem;}
+  .fade{opacity:0;}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script src="content.js"></script>
+<script src="texts.js"></script>
+<script>
+"use strict";
+/* ================= הגדרות ושמירה ================= */
+const DEF = {shacharit:40, mincha:15, maariv:12, kriatShma:6, israel:true, minyan:false, autoAdv:true, view:"progress", ttPlace:"start", from:"", to:"", rt:true};
+let settings = loadSettings();
+function loadSettings(){
+  try{ const s = JSON.parse(localStorage.getItem("mse-settings")); return Object.assign({},DEF,s||{}); }
+  catch(e){ return Object.assign({},DEF); }
+}
+function saveSettings(){ try{ localStorage.setItem("mse-settings", JSON.stringify(settings)); }catch(e){} }
+
+/* ================= לוח עברי (Intl) ================= */
+const MONTH_MAP = {
+  "Tishri":"TISHREI","Tishrei":"TISHREI","Heshvan":"CHESHVAN","Cheshvan":"CHESHVAN","Marheshvan":"CHESHVAN",
+  "Kislev":"KISLEV","Tevet":"TEVET","Shevat":"SHVAT","Shvat":"SHVAT",
+  "Adar":"ADAR","Adar I":"ADAR1","Adar II":"ADAR2","AdarI":"ADAR1","AdarII":"ADAR2",
+  "Nisan":"NISAN","Iyar":"IYAR","Sivan":"SIVAN","Tamuz":"TAMUZ","Tammuz":"TAMUZ","Av":"AV","Elul":"ELUL"
+};
+const MONTH_HE = {TISHREI:"תשרי",CHESHVAN:"חשוון",KISLEV:"כסלו",TEVET:"טבת",SHVAT:"שבט",
+  ADAR:"אדר",ADAR1:"אדר א׳",ADAR2:"אדר ב׳",NISAN:"ניסן",IYAR:"אייר",SIVAN:"סיוון",TAMUZ:"תמוז",AV:"אב",ELUL:"אלול"};
+function hebDate(d){
+  const parts = new Intl.DateTimeFormat("en-u-ca-hebrew",{year:"numeric",month:"long",day:"numeric"}).formatToParts(d);
+  let day=0, month="", year=0;
+  for(const p of parts){
+    if(p.type==="day") day = parseInt(p.value,10);
+    if(p.type==="month") month = p.value;
+    if(p.type==="year") year = parseInt(p.value,10);
+  }
+  return {day, month: MONTH_MAP[month] || month, year};
+}
+function hebDateHe(d){
+  try{
+    return new Intl.DateTimeFormat("he-u-ca-hebrew",{year:"numeric",month:"long",day:"numeric"}).format(d);
+  }catch(e){ const h=hebDate(d); return h.day+" "+(MONTH_HE[h.month]||h.month)+" "+h.year; }
+}
+function addDays(d,n){ const x=new Date(d); x.setDate(x.getDate()+n); return x; }
+
+/* אורך כסלו (לחישוב סוף חנוכה) */
+function kislevLength(refDate){
+  let d = new Date(refDate);
+  for(let i=0;i<60;i++){
+    const h = hebDate(d);
+    if(h.month==="TEVET" && h.day===1){
+      const prev = hebDate(addDays(d,-1));
+      return prev.day;
+    }
+    d = addDays(d,-1);
+  }
+  return 30;
+}
+
+/* ================= דגלי היום ================= */
+function dayFlags(civil, isMaariv){
+  const eff = isMaariv ? addDays(civil,1) : civil;
+  const h = hebDate(eff);
+  const dow = civil.getDay();
+  const f = {heb:h, effCivil:eff, dow,
+    roshChodesh:false, cholHamoed:null, chanukah:0, purim:false, purimKatan:false,
+    tachanun:true, hallel:null, yaaleVeyavo:false, geshem:false, matar:false,
+    aseretYemeiTeshuva:false, omer:0, fast:null, yomtov:null, motzaeiShabbat:false};
+
+  const M=h.month, D=h.day, IL=settings.israel;
+
+  // ראש חודש (א' תשרי הוא ראש השנה ואינו נוהג כר"ח)
+  if(D===30 || (D===1 && M!=="TISHREI")) f.roshChodesh = true;
+
+  // חול המועד
+  if(M==="NISAN"){ const from = IL?16:17; if(D>=from && D<=20) f.cholHamoed="פסח"; }
+  if(M==="TISHREI"){ const from = IL?16:17; if(D>=from && D<=21) f.cholHamoed="סוכות"; }
+
+  // חנוכה
+  if(M==="KISLEV" && D>=25) f.chanukah = D-24;
+  if(M==="TEVET" && D<=3){
+    const kl = kislevLength(eff);
+    const n = (kl-24)+D;
+    if(n<=8) f.chanukah = n;
+  }
+
+  // פורים
+  const adarP = (M==="ADAR"||M==="ADAR2");
+  if(adarP && D===14) f.purim = true;
+  if(M==="ADAR1" && (D===14||D===15)) f.purimKatan = true;
+
+  // עשרת ימי תשובה
+  if(M==="TISHREI" && D>=3 && D<=9) f.aseretYemeiTeshuva = true;
+
+  // "לדוד ה' אורי" — מראש חודש אלול עד הושענא רבא
+  f.ledavidOri = (M==="ELUL") || (M==="TISHREI" && D<=21);
+
+  // ימים טובים
+  const yt = [];
+  if(M==="NISAN" && (D===15||D===21)) yt.push("פסח");
+  if(!IL && M==="NISAN" && (D===16||D===22)) yt.push("פסח");
+  if(M==="SIVAN" && D===6) yt.push("שבועות");
+  if(!IL && M==="SIVAN" && D===7) yt.push("שבועות");
+  if(M==="TISHREI" && (D===1||D===2)) yt.push("ראש השנה");
+  if(M==="TISHREI" && D===10) yt.push("יום הכיפורים");
+  if(M==="TISHREI" && D===15) yt.push("סוכות");
+  if(!IL && M==="TISHREI" && D===16) yt.push("סוכות");
+  if(M==="TISHREI" && D===22) yt.push(IL?"שמיני עצרת ושמחת תורה":"שמיני עצרת");
+  if(!IL && M==="TISHREI" && D===23) yt.push("שמחת תורה");
+  if(yt.length) f.yomtov = yt[0];
+
+  // תעניות ציבור
+  if(M==="TAMUZ" && D===17) f.fast="שבעה עשר בתמוז";
+  if(M==="AV" && D===9) f.fast="תשעה באב";
+  if(M==="TISHREI" && D===3) f.fast="צום גדליה";
+  if(M==="TEVET" && D===10) f.fast="עשרה בטבת";
+  if(adarP && D===13) f.fast="תענית אסתר";
+
+  // תחנון — על פי המנהג בסידור תהלת ה'
+  let noTach = false;
+  if(f.roshChodesh) noTach=true;
+  if(M==="NISAN") noTach=true;
+  if(M==="IYAR" && (D===14||D===18)) noTach=true;
+  if(M==="SIVAN" && D<=12) noTach=true;
+  if(M==="AV" && (D===9||D===15)) noTach=true;
+  if(M==="ELUL" && D===29) noTach=true;
+  if(M==="TISHREI" && (D<=2 || D>=9)) noTach=true;
+  if(f.chanukah) noTach=true;
+  if(M==="SHVAT" && D===15) noTach=true;
+  if(adarP && (D===14||D===15)) noTach=true;
+  if(f.purimKatan) noTach=true;
+  f.tachanun = !noTach;
+
+  // הלל
+  if(f.chanukah) f.hallel="שלם";
+  else if(f.cholHamoed==="סוכות") f.hallel="שלם";
+  else if(f.cholHamoed==="פסח") f.hallel="חצי";
+  else if(f.roshChodesh) f.hallel="חצי";
+
+  // יעלה ויבוא
+  f.yaaleVeyavo = f.roshChodesh || !!f.cholHamoed;
+
+  // ביום טוב נוסח התפילה שונה — אין להציג דגלי חול
+  if(f.yomtov){ f.hallel=null; f.yaaleVeyavo=false; }
+
+  // משיב הרוח / מוריד הטל
+  const summerMonths = {IYAR:1,SIVAN:1,TAMUZ:1,AV:1,ELUL:1};
+  let tal;
+  if(M==="NISAN") tal = D>=15;
+  else if(summerMonths[M]) tal = true;
+  else if(M==="TISHREI") tal = D<=22;
+  else tal = false;
+  f.geshem = !tal;
+
+  // ותן טל ומטר
+  const winterMid = {KISLEV:1,TEVET:1,SHVAT:1,ADAR:1,ADAR1:1,ADAR2:1};
+  if(IL){
+    if(M==="CHESHVAN" && D>=7) f.matar=true;
+    else if(winterMid[M]) f.matar=true;
+    else if(M==="NISAN" && D<=14) f.matar=true;
+    else f.matar=false;
+  } else {
+    const mm = eff.getMonth()+1, dd = eff.getDate();
+    const afterDec4 = (mm===12 && dd>=5) || (mm>=1 && mm<=6);
+    const beforePesach = winterMid[M] || M==="CHESHVAN" || (M==="NISAN" && D<=14);
+    f.matar = afterDec4 && beforePesach;
+  }
+
+  // ספירת העומר
+  if(M==="NISAN" && D>=16) f.omer = D-15;
+  else if(M==="IYAR") f.omer = D+15;
+  else if(M==="SIVAN" && D<=5) f.omer = D+44;
+
+  f.motzaeiShabbat = isMaariv && dow===6;
+
+  // קריאת התורה — מספר העולים והסיבה
+  if(f.roshChodesh)        f.torah = {n:4, why:"ראש חודש"};
+  else if(f.cholHamoed)    f.torah = {n:4, why:"חול המועד "+f.cholHamoed};
+  else if(f.chanukah)      f.torah = {n:3, why:"חנוכה"};
+  else if(f.purim)         f.torah = {n:3, why:"פורים"};
+  else if(f.fast)          f.torah = {n:3, why:f.fast};
+  else if(dow===1||dow===4) f.torah = {n:3, why:"שני וחמישי"};
+  else f.torah = null;
+  if(f.yomtov) f.torah = null;
+
+  // מוסף
+  f.musaf = (f.roshChodesh ? "ראש חודש" : (f.cholHamoed ? "חול המועד "+f.cholHamoed : null));
+  if(f.yomtov) f.musaf = null;
+
+  return f;
+}
+
+/* תזכורות לעמידה */
+function amidahNotes(f, tefillah){
+  const n=[];
+  n.push(f.geshem ? "מַשִּׁיב הָרוּחַ וּמוֹרִיד הַגֶּשֶׁם" : "מוֹרִיד הַטָּל");
+  n.push(f.matar ? "וְתֵן טַל וּמָטָר לִבְרָכָה" : "וְתֵן בְּרָכָה");
+  if(f.yaaleVeyavo) n.push("יַעֲלֶה וְיָבֹא — "+(f.roshChodesh?"ראש חודש":"חול המועד "+f.cholHamoed));
+  if(f.aseretYemeiTeshuva) n.push("הַמֶּלֶךְ הַקָּדוֹשׁ · זָכְרֵנוּ לְחַיִּים");
+  if(f.chanukah) n.push("וְעַל הַנִּסִּים — חנוכה");
+  if(f.purim) n.push("וְעַל הַנִּסִּים — פורים");
+  if(f.fast && tefillah==="mincha") n.push("עֲנֵנוּ בשומע תפילה — "+f.fast);
+  if(f.motzaeiShabbat) n.push("אַתָּה חוֹנַנְתָּנוּ");
+  return n;
+}
+
+/* =================================================================
+   מבנה התפילה — קטע כללי ובתוכו קטעים פרטיים.
+   w = משקל יחסי לפי אורך הטקסט בסידור תהלת ה'.
+   הזמן של כל קטע = (משקל הקטע / סך המשקלות) × הזמן שהוגדר לתפילה.
+   ================================================================= */
+/* שיר של יום — המזמור משתנה בכל יום, וכך גם אורכו.
+   המשקל נגזר ממספר הפסוקים במזמור + הפסוקים הקבועים שאחריו. */
+const SHIR_YOM = [
+  {n:"יוֹם רִאשׁוֹן",  p:"לַה׳ הָאָרֶץ וּמְלוֹאָהּ", w:2.3},   // תהלים כד — י׳ פסוקים
+  {n:"יוֹם שֵׁנִי",    p:"גָּדוֹל ה׳ וּמְהֻלָּל מְאֹד", w:3.2}, // תהלים מח — ט״ו
+  {n:"יוֹם שְׁלִישִׁי", p:"אֱלֹהִים נִצָּב בַּעֲדַת אֵל", w:2.0},// תהלים פב — ח׳
+  {n:"יוֹם רְבִיעִי",  p:"אֵל נְקָמוֹת ה׳", w:5.0},             // תהלים צד — כ״ג + ג׳
+  {n:"יוֹם חֲמִישִׁי", p:"הַרְנִינוּ לֵאלֹהִים עוּזֵּנוּ", w:3.5},// תהלים פא — י״ז
+  {n:"יוֹם שִׁשִּׁי",  p:"ה׳ מָלָךְ גֵּאוּת לָבֵשׁ", w:1.5},     // תהלים צג — ה׳
+];
+
+function buildStructure(tef, f){
+  const G=[];
+  const grp=(name)=>{ const g={name, subs:[]}; G.push(g); return g; };
+  const add=(g,id,name,w,badge)=>g.subs.push({id,name,w,badge:badge||null});
+  const isMonThu = f.dow===1 || f.dow===4;
+  const sy = SHIR_YOM[f.dow] || SHIR_YOM[0];
+  const M = !!settings.minyan;
+
+  if(tef==="shacharit"){
+    let g;
+    g=grp("ברכות השחר");
+    add(g,"modeh","מוֹדֶה אֲנִי",1);
+    add(g,"netilat","עַל נְטִילַת יָדָיִם · אֲשֶׁר יָצַר",2.5);
+    add(g,"neshama","אֱלֹהַי נְשָׁמָה",2);
+    add(g,"birchot","בִּרְכוֹת הַשַּׁחַר",4);
+    add(g,"yehiratzon","וִיהִי רָצוֹן · יְהִי רָצוֹן",3);
+    add(g,"birkatTorah","בִּרְכוֹת הַתּוֹרָה",2.5);
+    add(g,"kohanim","בִּרְכַּת כֹּהֲנִים · אֵלּוּ דְבָרִים",2.5);
+
+    // מקום הנחת טלית ותפילין — לפי בחירת המשתמש
+    const ttGroups = ()=>{
+      let gg=grp("ציצית וטלית גדול");
+      add(gg,"talit","עֲטִיפַת טַלִּית",2);
+      gg=grp("תפילין");
+      add(gg,"tefillin","הֲנָחַת תְּפִלִּין",2);
+    };
+    const TT = settings.ttPlace || "start";
+    if(TT==="start") ttGroups();
+
+    g=grp("תפילת השחר");
+    add(g,"mahtovu","הֲרֵינִי מְקַבֵּל · מַה טֹּבוּ · אֲדוֹן עוֹלָם",3);
+    if(f.tachanun) add(g,"zochreinu","אֱלֹהֵינוּ וֵאלֹהֵי אֲבוֹתֵינוּ — זָכְרֵנוּ",1.6,"רק בימי תחנון");
+    add(g,"akeda","פָּרָשַׁת הָעֲקֵדָה",7);
+    if(f.tachanun) add(g,"ribonoAkeda","רִבּוֹנוֹ שֶׁל עוֹלָם — כְּמוֹ שֶׁכָּבַשׁ אַבְרָהָם",2.6,"רק בימי תחנון");
+    add(g,"leolam","לְעוֹלָם יְהֵא אָדָם · רִבּוֹן כָּל הָעוֹלָמִים",5);
+    add(g,"shmakatan","שְׁמַע (קטן) · אַתָּה הוּא",4);
+
+    if(TT==="afterShachar") ttGroups();
+
+    g=grp("קרבנות");
+    add(g,"deshen","תְּרוּמַת הַדֶּשֶׁן",3);
+    if(f.tachanun) add(g,"yrTamid","יְהִי רָצוֹן — שֶׁיִּבָּנֶה בֵּית הַמִּקְדָּשׁ",1.6,"רק בימי תחנון");
+    add(g,"tamid","פָּרָשַׁת הַתָּמִיד",4);
+    add(g,"ketoretP","פָּרָשַׁת הַקְּטֹרֶת — וַיֹּאמֶר ה׳ אֶל מֹשֶׁה",2.2);
+    add(g,"ketoret","תָּנוּ רַבָּנָן — פִּטּוּם הַקְּטֹרֶת",3.6);
+    add(g,"ketoretB","רַבָּן שִׁמְעוֹן בֶּן גַּמְלִיאֵל · תַּנְיָא רַבִּי נָתָן",2.2);
+    add(g,"tzvaot","ה׳ צְבָאוֹת עִמָּנוּ · וְעָרְבָה",1.6,"ג״פ");
+    add(g,"abaye","אַבַּיֵּי הֲוָה מְסַדֵּר · אָנָּא בְּכֹחַ",3);
+    if(f.tachanun) add(g,"ribonAbaye","רִבּוֹן הָעוֹלָמִים — אַתָּה צִוִּיתָנוּ",2.6,"רק בימי תחנון");
+    add(g,"eizehu","אֵיזֶהוּ מְקוֹמָן",8);
+    add(g,"ryishmael","רַבִּי יִשְׁמָעֵאל · יְהִי רָצוֹן",3);
+    if(M) add(g,"kdRabanan1","קַדִּישׁ דְּרַבָּנָן",1.2,"מניין");
+
+    if(TT==="afterKorbanot") ttGroups();
+
+    g=grp("הודו");
+    add(g,"hodu","הוֹדוּ לַה'",8);
+    add(g,"mizmorshir","מִזְמוֹר שִׁיר חֲנֻכַּת הַבַּיִת",2.5);
+    add(g,"adonmelech","ה' מֶלֶךְ · הוֹשִׁיעֵנוּ",1.5);
+    add(g,"lamnatzeachB","לַמְנַצֵּחַ בִּנְגִינֹת",1.5);
+
+    if(TT==="beforePsukei") ttGroups();
+
+    g=grp("פסוקי דזמרה");
+    add(g,"leshem","לְשֵׁם יִחוּד",0.6);
+    add(g,"baruchsheamar","בָּרוּךְ שֶׁאָמַר",2.5);
+    add(g,"letoda","מִזְמוֹר לְתוֹדָה",1.5);
+    add(g,"yehichvod","יְהִי כְבוֹד",3);
+    add(g,"ashrei","אַשְׁרֵי — תְּהִלָּה לְדָוִד",3.5);
+    add(g,"halleluyot","הַלְלוּיָהּ — חֲמֵשֶׁת הַמִּזְמוֹרִים",7);
+    add(g,"vayevarech","בָּרוּךְ ה' לְעוֹלָם · וַיְבָרֶךְ דָּוִיד",4.5);
+    add(g,"azyashir","שִׁירַת הַיָּם — אָז יָשִׁיר",5.5);
+    add(g,"yishtabach","יִשְׁתַּבַּח",2.2);
+    if(f.aseretYemeiTeshuva) add(g,"shirMimaamakim","שִׁיר הַמַּעֲלוֹת מִמַּעֲמַקִּים",1,"עשי״ת");
+    if(M) add(g,"kdHalf1","חֲצִי קַדִּישׁ · בָּרְכוּ",1,"מניין");
+
+    if(TT==="beforeKS") ttGroups();
+
+    g=grp("ברכות קריאת שמע");
+    add(g,"yotzer","יוֹצֵר אוֹר · הַמֵּאִיר לָאָרֶץ",4);
+    add(g,"kedushaYotzer","תִּתְבָּרֵךְ · קָדוֹשׁ · לָאֵל בָּרוּךְ",4.5);
+    add(g,"ahavat","אַהֲבַת עוֹלָם",3.5);
+    add(g,"shma1","שְׁמַע · וְאָהַבְתָּ",2);
+    add(g,"shma2","וְהָיָה אִם שָׁמֹעַ",2.5);
+    add(g,"shma3","וַיֹּאמֶר · אֱמֶת",2);
+    add(g,"emetv","אֱמֶת וְיַצִּיב · עֶזְרַת אֲבוֹתֵינוּ",5.5);
+    add(g,"michamocha","מִי כָמֹכָה · גָּאַל יִשְׂרָאֵל",1.5);
+
+    g=grp("עמידה");
+    add(g,"amida1","אָבוֹת · גְּבוּרוֹת · קְדֻשַּׁת הַשֵּׁם",3);
+    add(g,"amida2","י\"ג הַבְּרָכוֹת הָאֶמְצָעִיּוֹת",7);
+    add(g,"amida3","רְצֵה · מוֹדִים · שִׂים שָׁלוֹם",4);
+    add(g,"netzor","אֱלֹהַי נְצוֹר · יִהְיוּ לְרָצוֹן",1.5);
+
+    if(M){
+      g=grp("חזרת הש\"ץ");
+      /* חזרת הש"ץ היא חזרה על השמונה עשרה כולה, ולא רק קדושה ומודים */
+      add(g,"chazara","חֲזָרַת הַשַּׁ״ץ — כָּל הַשְּׁמוֹנֶה עֶשְׂרֵה",15.5,"מניין");
+      if(f.fast) add(g,"anenuSz","עֲנֵנוּ (הש״ץ)",1,f.fast);
+      
+    }
+
+    if(f.tachanun){
+      g=grp("תחנון");
+      add(g,"viduy","וִדּוּי — אָשַׁמְנוּ · אֵל אֶרֶךְ אַפַּיִם",2);
+      if(M) add(g,"yudGimel","וַיַּעֲבֹר · י״ג מִדּוֹת",1,"מניין");
+      add(g,"ledavid","לְדָוִד אֵלֶיךָ ה' נַפְשִׁי אֶשָּׂא",2.5);
+      if(isMonThu){
+        add(g,"vhu1","וְהוּא רַחוּם · אָבִינוּ מַלְכֵּנוּ · הַטֵּה אֱלֹהַי אָזְנְךָ",8,"שני וחמישי");
+        add(g,"vhu2","אָנָּא מֶלֶךְ · אֵין כָּמוֹךָ · הַפּוֹתֵחַ יָד בִּתְשׁוּבָה",7,"שני וחמישי");
+        add(g,"vhu3","ה׳ אֱלֹהֵי יִשְׂרָאֵל שׁוּב מֵחֲרוֹן אַפֶּךָ",6,"שני וחמישי");
+        add(g,"shomer","שׁוֹמֵר יִשְׂרָאֵל",1.5,"שני וחמישי");
+        add(g,"mitratze","מִתְרַצֶּה בְּרַחֲמִים",0.5,"שני וחמישי");
+      }
+      if(f.aseretYemeiTeshuva || f.fast) add(g,"avinu","אָבִינוּ מַלְכֵּנוּ",3,f.fast?"תענית":"עשי״ת");
+      add(g,"avinuYomi","אָבִינוּ מַלְכֵּנוּ אָבִינוּ אָתָּה",0.6);
+      add(g,"vanachnu","וַאֲנַחְנוּ לֹא נֵדַע",0.8);
+      if(M) add(g,"kdHalf2","חֲצִי קַדִּישׁ",0.8,"מניין");
+    }
+
+    // סדר ראש חודש / חול המועד שונה מסדר יום רגיל (ע"פ סידור אדמו"ר הזקן):
+    // הלל → קדיש → שיר של יום → קריאת התורה → אשרי ובא לציון → מוסף
+    const rcOrder = !!(f.roshChodesh || f.cholHamoed);
+
+    if(f.hallel){
+      g=grp("הלל ("+f.hallel+")");
+      const why = f.chanukah?"חנוכה":(f.roshChodesh?"ראש חודש":"חול המועד "+f.cholHamoed);
+      add(g,"hallel","הַלֵּל "+(f.hallel==="שלם"?"שָׁלֵם":"בְּדִלּוּג"), f.hallel==="שלם"?8:6.5, why);
+      if(M){
+        if(rcOrder) add(g,"kdShalemHallel","קַדִּישׁ שָׁלֵם (תִּתְקַבֵּל)",1.2,"מניין");
+        else add(g,"kdHalf2","חֲצִי קַדִּישׁ",0.8,"מניין");
+      }
+    }
+
+    // קטע "שיר של יום" — בר"ח ובחוה"מ הוא בא כאן, לפני קריאת התורה
+    const shirGroup = ()=>{
+      g=grp("שיר של יום");
+      if(f.tachanun) add(g,"tfilaledavid","תְּפִלָּה לְדָוִד — הַטֵּה ה׳ אָזְנְךָ",2.5);
+      add(g,"beityaakov","בֵּית יַעֲקֹב · יְהִי ה׳ אֱלֹהֵינוּ עִמָּנוּ",1.2);
+      add(g,"shirHamaalot","שִׁיר הַמַּעֲלוֹת — לוּלֵי ה׳ שֶׁהָיָה לָנוּ",1);
+      add(g,"shirshelyom","שִׁיר שֶׁל יוֹם — "+sy.n, sy.w, sy.p);
+      if(f.roshChodesh) add(g,"barchi","בָּרְכִי נַפְשִׁי",3,"ראש חודש");
+      if(f.ledavidOri) add(g,"ledavidori","לְדָוִד ה׳ אוֹרִי וְיִשְׁעִי",2,"אלול–הו״ר");
+      if(M) add(g,"kdYatom0","קַדִּישׁ יָתוֹם",1,"מניין");
+    };
+    if(rcOrder) shirGroup();
+
+    if(M && f.torah){
+      g=grp("קריאת התורה");
+      add(g,"trOut","הוֹצָאַת סֵפֶר תּוֹרָה — וַיְהִי בִּנְסֹעַ · בְּרִיךְ שְׁמֵהּ · גַּדְּלוּ",9,f.torah.why);
+      add(g,"trRead","קְרִיאַת הַתּוֹרָה — "+f.torah.n+" עוֹלִים", f.torah.n===4?48:40);
+      add(g,"trBack","חֲצִי קַדִּישׁ · הַגְבָּהָה · יְהַלְלוּ · הַכְנָסַת הַסֵּפֶר",11);
+    }
+
+    g=grp("אשרי · ובא לציון");
+    add(g,"ashrei2","אַשְׁרֵי — תְּהִלָּה לְדָוִד",2);
+    if(f.tachanun) add(g,"lamnatzeach","לַמְנַצֵּחַ יַעַנְךָ",1.2);
+    add(g,"uvaletzion","וּבָא לְצִיּוֹן",4);
+    if(M && !f.musaf && !f.hallel) add(g,"kdShalem1","קַדִּישׁ שָׁלֵם (תִּתְקַבֵּל)",1.2,"מניין");
+    if(M && f.chanukah) add(g,"kdShalem1","קַדִּישׁ שָׁלֵם (תִּתְקַבֵּל)",1.2,"מניין");
+
+    if(!rcOrder) shirGroup();
+
+    if(f.musaf){
+      g=grp("מוסף");
+      if(M) add(g,"msKdHalf","חֲצִי קַדִּישׁ",0.8,"מניין");
+      if(f.roshChodesh) add(g,"msTefillin","הֲסָרַת הַתְּפִילִּין",0.6,"לפני מוסף");
+      add(g,"musaf","עֲמִידָה שֶׁל מוּסָף",6,f.musaf);
+      if(M){
+        add(g,"msChazara","חֲזָרַת הַשַּׁ״ץ · כֶּתֶר",13,"מניין");
+        if(settings.israel) add(g,"msKohanim","בִּרְכַּת כֹּהֲנִים",2.6,"נשיאת כפיים");
+        add(g,"msKdShalem","קַדִּישׁ שָׁלֵם",1.2,"מניין");
+      }
+    }
+
+    g=grp("קוה · עלינו");
+    add(g,"einkelokeinu","קַוֵּה · אֵין כֵּאלֹהֵינוּ · פִּטּוּם הַקְּטֹרֶת",3);
+    if(M) add(g,"kdRabanan2","קַדִּישׁ דְּרַבָּנָן",1.2,"מניין");
+    add(g,"aleinu","עָלֵינוּ לְשַׁבֵּחַ",1.8);
+    if(M) add(g,"kdYatom1","קַדִּישׁ יָתוֹם",1,"מניין");
+    add(g,"altira","אַל תִּירָא",0.4);
+
+    // תפילין דרבינו תם — מניחים אחר התפילה בלא ברכה
+    if(settings.rt){
+      g=grp("תפילין דרבינו תם");
+      add(g,"rtShma","שְׁמַע · וְאָהַבְתָּ",2);
+      add(g,"rtVehaya","וְהָיָה אִם שָׁמֹעַ",2.5);
+      add(g,"rtVayomer","וַיֹּאמֶר · אֱמֶת",2);
+      add(g,"rtKadesh","קַדֶּשׁ לִי · וְהָיָה כִּי יְבִאֲךָ",5);
+      g.subs.forEach(s=>s.rt=true);
+
+      g=grp("שש זכירות");
+      add(g,"zechirot","שֵׁשׁ זְכִירוֹת",2.5);
+      g.subs.forEach(s=>s.rt=true);
+    }
+
+  } else if(tef==="mincha"){
+    let g;
+    g=grp("קרבנות");
+    add(g,"mnTamid","פָּרָשַׁת הַתָּמִיד",4);
+    add(g,"mnKetoretP","אַתָּה הוּא ה׳ · וַיֹּאמֶר ה׳ אֶל מֹשֶׁה",2);
+    add(g,"mnKetoret","פִּטּוּם הַקְּטֹרֶת",3);
+    add(g,"mnKetoretB","רַבָּן שִׁמְעוֹן · תַּנְיָא · בַּר קַפָּרָא",2.5);
+    add(g,"mnTzvaot","ה׳ צְבָאוֹת (ג״פ) · וְעָרְבָה",1.2);
+    add(g,"mnAna","אָנָּא בְּכֹחַ",1.5);
+
+    g=grp("אשרי");
+    add(g,"mnAshrei","אַשְׁרֵי — תְּהִלָּה לְדָוִד",3.5);
+    if(M && f.fast){
+      add(g,"trOutMin","הוֹצָאַת סֵפֶר תּוֹרָה — וַיְחַל",4,f.fast);
+      add(g,"trReadMin","קְרִיאַת הַתּוֹרָה — 3 עוֹלִים",12);
+    }
+    if(M) add(g,"kdHalfMin","חֲצִי קַדִּישׁ",0.8,"מניין");
+
+    g=grp("עמידה");
+    add(g,"amida1","אָבוֹת · גְּבוּרוֹת · קְדֻשַּׁת הַשֵּׁם",3);
+    add(g,"amida2","י\"ג הַבְּרָכוֹת הָאֶמְצָעִיּוֹת",7);
+    add(g,"amida3","רְצֵה · מוֹדִים · שִׂים שָׁלוֹם",4);
+    add(g,"netzor","אֱלֹהַי נְצוֹר · יִהְיוּ לְרָצוֹן",1.5);
+
+    if(M){
+      g=grp("חזרת הש\"ץ");
+      add(g,"chazaraMin","חֲזָרַת הַשַּׁ״ץ — כָּל הַשְּׁמוֹנֶה עֶשְׂרֵה",15.5,"מניין");
+      if(f.fast) add(g,"anenuSzMin","עֲנֵנוּ (הש״ץ)",1,f.fast);
+      if(settings.israel && f.fast) add(g,"kohanimSzMin","בִּרְכַּת כֹּהֲנִים",2.6,"נשיאת כפיים");
+    }
+
+    if(f.tachanun){
+      g=grp("תחנון");
+      add(g,"mnViduy","וִדּוּי — אָשַׁמְנוּ · אֵל אֶרֶךְ אַפַּיִם",2);
+      if(M) add(g,"mnYudGimel","וַיַּעֲבֹר · י״ג מִדּוֹת",1,"מניין");
+      add(g,"mnLedavid","לְדָוִד אֵלֶיךָ ה' נַפְשִׁי אֶשָּׂא",2.5);
+      if(f.aseretYemeiTeshuva || f.fast) add(g,"mnAvinu","אָבִינוּ מַלְכֵּנוּ",3,f.fast?"תענית":"עשי״ת");
+      add(g,"mnAvinuYomi","אָבִינוּ מַלְכֵּנוּ אָבִינוּ אָתָּה",0.6);
+      add(g,"mnVanachnu","וַאֲנַחְנוּ לֹא נֵדַע",0.8);
+    }
+
+    g=grp("סיום התפילה");
+    if(M) add(g,"kdShalemMin","קַדִּישׁ שָׁלֵם (תִּתְקַבֵּל)",1.2,"מניין");
+    if(f.ledavidOri) add(g,"ledavidori","לְדָוִד ה׳ אוֹרִי וְיִשְׁעִי",2,"אלול–הו״ר");
+    add(g,"mnAleinu","עָלֵינוּ לְשַׁבֵּחַ",2.2);
+    if(M) add(g,"kdYatomMin","קַדִּישׁ יָתוֹם",1,"מניין");
+    add(g,"mnAltira","אַל תִּירָא",0.4);
+
+  } else if(tef==="kriatShma"){
+    let g;
+    g=grp("מחילה וסליחה");
+    add(g,"kmMechila","רִבּוֹנוֹ שֶׁל עוֹלָם — הֲרֵינִי מוֹחֵל",2.5);
+
+    g=grp("קריאת שמע");
+    add(g,"kmHashkivenu","הַשְׁכִּיבֵנוּ",2);
+    add(g,"kmShma1","שְׁמַע · וְאָהַבְתָּ",2);
+    add(g,"kmShma2","וְהָיָה אִם שָׁמֹעַ",2.5);
+    add(g,"kmShma3","וַיֹּאמֶר · אֱמֶת",2);
+
+    g=grp("פסוקי שמירה");
+    add(g,"kmYaalzu","יַעְלְזוּ חֲסִידִים · הִנֵּה מִטָּתוֹ · בִּרְכַּת כֹּהֲנִים",3.4,"ג״פ");
+    add(g,"kmYoshev","יוֹשֵׁב בְּסֵתֶר עֶלְיוֹן",2.5);
+
+    g=grp("וידוי");
+    add(g,"kmViduy","אֱלֹהֵינוּ — תָּבוֹא לְפָנֶיךָ · אָשַׁמְנוּ",2.5);
+    add(g,"kmRazei","מַה נֹּאמַר לְפָנֶיךָ · אַתָּה יוֹדֵעַ רָזֵי עוֹלָם",2);
+    add(g,"kmOtiot","יְהִי רָצוֹן — אַרְבַּע אוֹתִיּוֹת הַשֵּׁם",3.5);
+    add(g,"kmAna","אָנָּא בְּכֹחַ",1.5);
+    add(g,"kmMizmor","לַמְנַצֵּחַ — חָנֵּנִי אֱלֹהִים (מזמור נא)",3);
+
+    g=grp("שמירה לשינה");
+    add(g,"kmShirLam","שִׁיר לַמַּעֲלוֹת אֶשָּׂא עֵינַי",1.5);
+    add(g,"kmGad","גָּד גְּדוּד · פְּסוּקֵי בִּטָּחוֹן · בְּיָדְךָ אַפְקִיד רוּחִי",4,"ג״פ");
+    add(g,"kmRibon","רִבּוֹן הָעוֹלָמִים — אַתָּה בָּרָאתָ עוֹלָמְךָ",3);
+    add(g,"kmHamapil","הַמַּפִּיל חֶבְלֵי שֵׁנָה",2);
+
+  } else {
+    let g;
+    g=grp("פתיחה");
+    add(g,"vehu","וְהוּא רַחוּם · שִׁיר הַמַּעֲלוֹת",1.8);
+    if(M) add(g,"kdHalfMa","חֲצִי קַדִּישׁ · בָּרְכוּ",1,"מניין");
+
+    g=grp("ברכות קריאת שמע");
+    add(g,"maarivAravim","הַמַּעֲרִיב עֲרָבִים",2);
+    add(g,"ahavat2","אַהֲבַת עוֹלָם",1.5);
+    add(g,"shma1","שְׁמַע · וְאָהַבְתָּ",2);
+    add(g,"shma2","וְהָיָה אִם שָׁמֹעַ",2.5);
+    add(g,"shma3","וַיֹּאמֶר · אֱמֶת",2);
+    add(g,"emet2","אֱמֶת וֶאֱמוּנָה",2.5);
+    add(g,"hashkivenu","הַשְׁכִּיבֵנוּ",2);
+    if(M) add(g,"kdHalfMa2","חֲצִי קַדִּישׁ",0.8,"מניין");
+
+    g=grp("עמידה");
+    add(g,"amida1","אָבוֹת · גְּבוּרוֹת · קְדֻשַּׁת הַשֵּׁם",3);
+    add(g,"amida2","י\"ג הַבְּרָכוֹת הָאֶמְצָעִיּוֹת",7, f.motzaeiShabbat?"אתה חוננתנו":null);
+    add(g,"amida3","רְצֵה · מוֹדִים · שִׂים שָׁלוֹם",4);
+    add(g,"netzor","אֱלֹהַי נְצוֹר · יִהְיוּ לְרָצוֹן",1.5);
+
+    g=grp("סיום התפילה");
+    if(M) add(g,"kdShalemMa","קַדִּישׁ שָׁלֵם (תִּתְקַבֵּל)",1.2,"מניין");
+    if(f.omer) add(g,"omer","סְפִירַת הָעֹמֶר — הַיּוֹם "+f.omer+" לָעֹמֶר",1.5,"הלילה");
+    add(g,"maAleinu","עָלֵינוּ לְשַׁבֵּחַ",2.2);
+    if(M) add(g,"kdYatomMa","קַדִּישׁ יָתוֹם",1,"מניין");
+    add(g,"maAltira","אַל תִּירָא",0.4);
+  }
+  return G;
+}
+
+/* ================= פתגמים ================= */
+const QUOTES = {
+  general:[
+    ["אֵיזוֹ הִיא עֲבוֹדָה שֶׁבַּלֵּב? זוֹ תְּפִלָּה.","תענית ב ע״א"],
+    ["דַּע לִפְנֵי מִי אַתָּה עוֹמֵד.","ברכות כח ע״ב"],
+    ["אַל תַּעַשׂ תְּפִלָּתְךָ קֶבַע, אֶלָּא רַחֲמִים וְתַחֲנוּנִים לִפְנֵי הַמָּקוֹם.","אבות ב, יג"],
+    ["וַאֲנִי תְפִלָּתִי לְךָ ה׳ עֵת רָצוֹן.","תהלים סט, יד"],
+    ["קָרוֹב ה׳ לְכָל קֹרְאָיו — לְכֹל אֲשֶׁר יִקְרָאֻהוּ בֶאֱמֶת.","תהלים קמה, יח"],
+    ["הַמִּתְפַּלֵּל צָרִיךְ שֶׁיְּכַוֵּן אֶת לִבּוֹ לַשָּׁמַיִם.","ברכות לא ע״א"],
+    ["רַחֲמָנָא לִבָּא בָּעֵי — הקב״ה את הלב מבקש.","סנהדרין קו ע״ב"],
+    ["תְּפִלָּה בְּלֹא כַּוָּנָה — כְּגוּף בְּלֹא נְשָׁמָה.","בשם חובות הלבבות"],
+    ["עֲבוֹדַת התפילה היא עיקר עבודת האדם בעולם הזה.","ספר המאמרים מלוקט ח״ד עמ' שיד"],
+    ["הדרישה להתפלל באריכות היא מכל אחד ואחד, ולא רק לאנשי מעלה.","ספר השיחות תש״ב עמ' 133"],
+    ["אֵין עוֹד מִלְבַדּוֹ — לא רק שאין אלוקים אחר, אלא שאין מציאות אחרת.","תורת הבעל שם טוב; דברים ד, לה"],
+    ["וְכָל הַמְּנִיעוֹת — דמיונות.","על פי תניא פרק לג"],
+    ["הַכֹּל בִּידֵי שָׁמַיִם חוּץ מִיִּרְאַת שָׁמַיִם.","ברכות לג ע״ב"],
+  ],
+  /* ---- לפי תפילה ---- */
+  p_shacharit:[
+    ["וַיַּשְׁכֵּם אַבְרָהָם בַּבֹּקֶר אֶל הַמָּקוֹם אֲשֶׁר עָמַד שָׁם — מכאן שאברהם תיקן שחרית.","ברכות כו ע״ב; בראשית יט, כז"],
+    ["בְּטוּבוֹ מְחַדֵּשׁ בְּכָל יוֹם תָּמִיד מַעֲשֵׂה בְרֵאשִׁית — העולם נברא הבוקר מחדש.","נוסח התפילה; תניא, שער היחוד והאמונה"],
+    ["ה׳ בֹּקֶר תִּשְׁמַע קוֹלִי, בֹּקֶר אֶעֱרָךְ לְךָ וַאֲצַפֶּה.","תהלים ה, ד"],
+    ["שחרית היא כנגד מידת החסד — פתיחת היום באהבה.","על פי הקבלה; זוהר"],
+  ],
+  p_mincha:[
+    ["לְעוֹלָם יְהֵא אָדָם זָהִיר בִּתְפִלַּת הַמִּנְחָה, שֶׁהֲרֵי אֵלִיָּהוּ לֹא נַעֲנָה אֶלָּא בִּתְפִלַּת הַמִּנְחָה.","ברכות ו ע״ב"],
+    ["וַיֵּצֵא יִצְחָק לָשׂוּחַ בַּשָּׂדֶה לִפְנוֹת עָרֶב — מכאן שיצחק תיקן מנחה.","ברכות כו ע״ב; בראשית כד, סג"],
+    ["מנחה נופלת בעיצומו של היום — ודווקא בכך מוכיחה שהקשר אינו תלוי בשעת מנוחה.","על פי דרכי החסידות"],
+    ["בְּשָׂדֶה — יצחק התפלל בשדה, במקום העבודה. גם שם אפשר.","על פי בראשית כד, סג"],
+  ],
+  p_maariv:[
+    ["וַיִּפְגַּע בַּמָּקוֹם וַיָּלֶן שָׁם — מכאן שיעקב תיקן ערבית.","ברכות כו ע״ב; בראשית כח, יא"],
+    ["בָּרְכוּ אֶת ה׳ כָּל עַבְדֵי ה׳ הָעֹמְדִים בְּבֵית ה׳ בַּלֵּילוֹת — בלילות דייקא.","תהלים קלד, א"],
+    ["ביום 'אֱמֶת וְיַצִּיב' — שהדבר ברור לעין; בלילה 'אֱמֶת וֶאֱמוּנָה' — שבחושך צריך אמונה.","על פי הטור או״ח סי' רלו"],
+    ["גּוֹלֵל אוֹר מִפְּנֵי חֹשֶׁךְ — האור אינו נעלם אלא נגלל, ויתגלה שוב.","נוסח התפילה"],
+  ],
+  p_kriatShma:[
+    ["אַף עַל פִּי שֶׁקָּרָא אָדָם קְרִיאַת שְׁמַע בְּבֵית הַכְּנֶסֶת — מִצְוָה לִקְרוֹתוֹ עַל מִטָּתוֹ.","ברכות ה ע״א"],
+    ["אִמְרוּ בִלְבַבְכֶם עַל מִשְׁכַּבְכֶם וְדֹמּוּ.","תהלים ד, ה"],
+    ["בְּיָדְךָ אַפְקִיד רוּחִי — הפקדה, לא נתינה. היא תוחזר בבוקר.","תהלים לא, ו"],
+    ["שֵׁנָה — אֶחָד מִשִּׁשִּׁים בְּמִיתָה.","ברכות נז ע״ב"],
+    ["כָּל הַמַּעֲבִיר עַל מִדּוֹתָיו — מַעֲבִירִין לוֹ עַל כָּל פְּשָׁעָיו.","ראש השנה יז ע״א"],
+  ],
+  /* ---- לפי קטע ---- */
+  hachana:[
+    ["יִתְבּוֹנֵן לִפְנֵי מִי הוּא שׁוֹכֵב — לִפְנֵי מֶלֶךְ מַלְכֵי הַמְּלָכִים.","סידור אדמו״ר הזקן"],
+    ["מוֹדֶה אֲנִי — רַבָּה אֱמוּנָתֶךָ: כל בוקר העולם מתחיל מחדש.","על פי נוסח 'מודה אני'"],
+    ["הַנְּשָׁמָה — חֵלֶק אֱלוֹקַ מִמַּעַל מַמָּשׁ.","תניא פרק ב"],
+    ["הַגּוּף אֵינוֹ תַּחֲנַת בֵּינַיִם — נִתְאַוָּוה הקב״ה לִהְיוֹת לוֹ דִירָה בְּתַחְתּוֹנִים.","מדרש תנחומא נשא טז"],
+  ],
+  psukei:[
+    ["כֹּל הַנְּשָׁמָה תְּהַלֵּל יָהּ — על כל נשימה ונשימה.","בראשית רבה יד"],
+    ["פותח את ידך ומשביע לכל חי רצון — פסוק שצריך כוונה מיוחדת.","שולחן ערוך או״ח סי' נא"],
+    ["'זמרה' גם מלשון לזמר ולכרות — לכרות את הקוצים המפריעים.","מטה משה ח״א נג; לקוטי תורה בחוקותי מז, ד"],
+    ["הַלְלוּהוּ בִּגְבוּרוֹתָיו — עשרה הילולים כנגד עשר הספירות.","ספרי החסידות; סידור האריז״ל"],
+    ["כשיתבונן האדם במעשיו וברואיו הנפלאים — מיד הוא אוהב ומשבח ומפאר.","רמב״ם, הלכות יסודי התורה ב, א"],
+  ],
+  shma:[
+    ["שְׁמַע יִשְׂרָאֵל — לִמְסֹר את הנפש על אחדותו יתברך.","על פי התניא"],
+    ["בְּכָל לְבָבְךָ — בשני יצריך.","ברכות נד ע״א"],
+    ["כָּל הַמַּאֲרִיךְ בְּאֶחָד — מַאֲרִיכִין לוֹ יָמָיו וּשְׁנוֹתָיו.","ברכות יג ע״ב"],
+    ["'שמע' גם מלשון אסיפה — לאסוף את כל הכוחות שהתפזרו במשך היום.","על פי שמואל א טו, ד"],
+    ["אִם מֶלֶךְ גָּדוֹל מַרְאֶה אַהֲבָתוֹ לְאִישׁ הֶדְיוֹט — אֲפִלּוּ לֵב הָאֶבֶן יִמַּס.","תניא פרק מו"],
+  ],
+  amidah:[
+    ["יִרְאֶה עַצְמוֹ כְּאִלּוּ הוּא עוֹמֵד לִפְנֵי הַשְּׁכִינָה.","רמב״ם, הלכות תפילה ד, טז"],
+    ["כְּעֶבֶד לִפְנֵי רַבּוֹ — באימה וביראה.","שבת י ע״א"],
+    ["אֲדֹנָי שְׂפָתַי תִּפְתָּח — הוא יפתח, רק תעמוד באמת.","על פי תהלים נא, יז"],
+    ["אֲפִלּוּ הַמֶּלֶךְ שׁוֹאֵל בִּשְׁלוֹמוֹ — לֹא יְשִׁיבֶנּוּ.","משנה ברכות ה, א"],
+    ["רַק שְׂפָתֶיהָ נָעוֹת וְקוֹלָהּ לֹא יִשָּׁמֵעַ.","שמואל א א, יג"],
+    ["אחרי הרעש והאש — קוֹל דְּמָמָה דַקָּה. ואז 'תמן קאתי מלכא'.","מלכים א יט, יב; זוהר פינחס רכג"],
+  ],
+  tachanun:[
+    ["לֵב נִשְׁבָּר וְנִדְכֶּה — אֱלֹהִים לֹא תִבְזֶה.","תהלים נא, יט"],
+    ["אֵלֶיךָ ה׳ נַפְשִׁי אֶשָּׂא — רגע של אמת מול עצמך.","תהלים כה, א"],
+    ["הנפילה עצמה היא דבקות — 'אתדבקות רוחא ברוחא' כל היום.","תניא, אגרת התשובה פרק י"],
+  ],
+  korbanot:[
+    ["וּנְשַׁלְּמָה פָרִים שְׂפָתֵינוּ — האמירה נחשבת כהקרבה.","הושע יד, ג"],
+    ["'קרבן' מלשון קירוב — קירוב הנפש הבהמית.","תניא פרק לא"],
+    ["'קטורת' מלשון 'קטר' — קשר. 'בחד קטירא אתקטרנא ביה בקודשא בריך הוא'.","זוהר, אדרא זוטא"],
+    ["כָּל הַשּׁוֹנֶה הֲלָכוֹת בְּכָל יוֹם — מֻבְטָח לוֹ שֶׁהוּא בֶּן עוֹלָם הַבָּא.","נידה עג ע״א"],
+  ],
+  hallel:[
+    ["מִן הַמֵּצַר קָרָאתִי יָהּ, עָנָנִי בַּמֶּרְחָב יָהּ.","תהלים קיח, ה"],
+    ["אֶבֶן מָאֲסוּ הַבּוֹנִים הָיְתָה לְרֹאשׁ פִּנָּה.","תהלים קיח, כב"],
+  ],
+  torah:[
+    ["לָא עַל אֱנָשׁ רְחִיצְנָא וְלָא עַל בַּר אֱלָהִין סָמִיכְנָא — אֶלָּא בֶּאֱלָהָא דִשְׁמַיָּא.","זוהר ויקהל רו, א"],
+    ["וְזֹאת הַתּוֹרָה אֲשֶׁר שָׂם מֹשֶׁה לִפְנֵי בְּנֵי יִשְׂרָאֵל.","דברים ד, מד"],
+  ],
+  kaddish:[
+    ["כָּל הָעוֹנֶה 'יְהֵא שְׁמֵהּ רַבָּא' בְּכָל כֹּחוֹ — קוֹרְעִין לוֹ גְּזַר דִּינוֹ.","שבת קיט ע״ב"],
+    ["בַּקַּדִּישׁ אֵין שׁוּם בַּקָּשָׁה פְּרָטִית — כולו בקשה אחת: שיתגדל שמו בעולם.","על פי נוסח הקדיש"],
+  ],
+  omer:[
+    ["וּסְפַרְתֶּם לָכֶם — שכל יום יאיר בעבודת המידות.","ויקרא כג, טו; על פי החסידות"],
+  ],
+  shmira:[
+    ["הִנֵּה לֹא יָנוּם וְלֹא יִישָׁן שׁוֹמֵר יִשְׂרָאֵל.","תהלים קכא, ד"],
+    ["כִּי מַלְאָכָיו יְצַוֶּה לָּךְ לִשְׁמָרְךָ בְּכָל דְּרָכֶיךָ.","תהלים צא, יא"],
+    ["עוּרָה כְבוֹדִי, אָעִירָה שָּׁחַר — אני מעורר את השחר, ולא הוא אותי.","ברכות ג ע״ב; תהלים נז, ט"],
+  ],
+};
+function quoteKey(subId, grpName){
+  if(!subId) return "general";
+  if(subId.startsWith("amida")||subId==="netzor") return "amidah";
+  if(subId.startsWith("shma")||subId==="ahavat"||subId==="ahavat2"||subId==="emetv"||subId==="emet2") return "shma";
+  if(subId==="viduy"||subId==="yudGimel"||subId==="ledavid"||subId==="vhurachum"||subId==="shomer"||subId==="avinuChanenu"||subId==="vanachnu"||subId==="avinu") return "tachanun";
+  if(subId==="omer") return "omer";
+  if(["modeh","netilat","neshama","birchot","yehiratzon","birkatTorah","kohanim","mahtovu"].includes(subId)) return "hachana";
+  if(["deshen","tamid","ketoret","abaye","eizehu","ryishmael"].includes(subId)) return "korbanot";
+  if(subId.indexOf("kd")===0 || subId.indexOf("msKd")===0) return "kaddish";
+  if(subId.indexOf("tr")===0) return "torah";
+  if(subId==="hallel") return "hallel";
+  if(["kmYaalzu","kmYoshev","kmShirLam","kmGad","kmRibon","kmHamapil","hashkivenu"].includes(subId)) return "shmira";
+  if(["kmViduy","kmRazei","kmOtiot","kmMizmor","kmAna","kmMechila"].includes(subId)) return "tachanun";
+  if(["kmShma1","kmShma2","kmShma3","rtShma","rtVehaya","rtVayomer"].includes(subId)) return "shma";
+  if(["chazara","chazaraMin","msChazara","musaf","kohanimSz","kohanimSzMin","msKohanim"].includes(subId)) return "amidah";
+  if(["altira","maAltira","mnAltira"].includes(subId)) return "aleinu";
+  if(["maAleinu"].includes(subId)) return "aleinu";
+  if(subId.indexOf("mn")===0) return {mnViduy:"tachanun",mnYudGimel:"tachanun",mnLedavid:"tachanun",mnAvinu:"tachanun",mnAvinuYomi:"tachanun",mnVanachnu:"tachanun",mnAleinu:"aleinu",mnAltira:"aleinu",mnAshrei:"ashrei"}[subId] || subId.charAt(2).toLowerCase()+subId.slice(3);
+  if(grpName && grpName.includes("פסוקי דזמרה")) return "psukei";
+  if(grpName && grpName.includes("קרבנות")) return "korbanot";
+  return "general";
+}
+function quotePool(subId, grpName){
+  const sec = QUOTES[quoteKey(subId,grpName)] || [];
+  const tef = QUOTES["p_"+(state.tef||"shacharit")] || [];
+  // קודם פתגמי הקטע, אחר כך פתגמי התפילה, ולבסוף הכלליים
+  const seen=new Set(), out=[];
+  [].concat(sec,tef,QUOTES.general).forEach(q=>{ if(!seen.has(q[0])){ seen.add(q[0]); out.push(q); } });
+  return out;
+}
+
+/* ================= מצב האפליקציה ================= */
+/* שני צירי זמן:
+   1. השעון האמיתי — כמה זמן באמת עבר מתחילת התפילה (לעולם לא משתנה).
+   2. מיקום בתכנון (planPos) — איפה אנחנו "אמורים" להיות ברצף הקטעים.
+   נגיעה על קטע מזיזה רק את מיקום התכנון. סיימת קטע מוקדם? הצפי לסיום מתקצר. */
+let state = {screen:"home", tab:"pray", wiz:null, tef:null, groups:[], flat:[], startTs:0,
+  planAnchor:0, anchorTs:0, log:[], done:new Set(), doneOpen:false,
+  away:[], awayStart:0, hold:false, upOpen:false,
+  totalMs:0, curIdx:-1, quoteIdx:0, quoteTimer:null, tickTimer:null, wakeLock:null, flags:null};
+
+const TEF_HE = {shacharit:"שחרית", mincha:"מנחה", maariv:"ערבית", kriatShma:"קריאת שמע שעל המיטה"};
+
+function fmt(ms){
+  const neg = ms<0; ms=Math.abs(ms);
+  const s=Math.floor(ms/1000), m=Math.floor(s/60), r=s%60;
+  return (neg?"+":"")+String(m).padStart(2,"0")+":"+String(r).padStart(2,"0");
+}
+function fmtMin(ms){
+  const m = ms/60000;
+  if(m>=9.5) return Math.round(m)+" דק׳";
+  if(m>=1) return (Math.round(m*2)/2).toLocaleString("he")+" דק׳";
+  return Math.max(5,Math.round(ms/1000/5)*5)+" שנ׳";
+}
+
+/* ================= מסך הבית ================= */
+const app = document.getElementById("app");
+
+/* רשימת הקטעים הכלליים לבחירת טווח */
+function groupChoices(tef, f){
+  const G = buildStructure(tef, f);
+  return G.filter(g=>g.subs.length).map(g=>({
+    label:g.name, firstId:g.subs[0].id, lastId:g.subs[g.subs.length-1].id
+  }));
+}
+
+/* ================= מסכי הבית: תפילה · היסטוריה · הגדרות ================= */
+
+const TEF_LIST = [
+  {id:"shacharit", he:"שחרית",  icon:"🌅", sub:"תפילת הבוקר"},
+  {id:"mincha",    he:"מנחה",   icon:"🌇", sub:"תפילת אחר הצהריים"},
+  {id:"maariv",    he:"ערבית",  icon:"🌙", sub:"תפילת הערב"},
+  {id:"kriatShma", he:"קריאת שמע שעל המיטה", icon:"🛏️", sub:"לפני השינה"}
+];
+const MIN_PRESETS = {shacharit:[20,30,40,50,60], mincha:[8,12,15,20,30],
+                     maariv:[8,12,15,20,25],     kriatShma:[3,5,6,8,10]};
+
+/* ---------- מעטפת: לשוניות וניווט ---------- */
+function renderHome(){
+  clearTimers();
+  if(state.wiz){ renderWizard(); return; }
+  const now = new Date();
+  if(now.getDay()===6){
+    app.innerHTML = `<div class="shabbat">
+      <div class="c">🕯️🕯️</div>
+      <h1 style="margin-top:16px">שבת שלום</h1>
+      <p class="note">היום שבת קודש — הניחו את הטלפון ותתפללו מתוך הסידור.<br>נתראה במוצאי שבת.</p>
+    </div>`;
+    return;
+  }
+  const tab = state.tab || "pray";
+  const body = tab==="history" ? viewHistory() : (tab==="settings" ? viewSettings() : viewPray(now));
+  app.innerHTML = body + navBar(tab);
+  wireCommon();
+  if(tab==="pray") wirePray();
+  if(tab==="settings") wireSettings();
+  if(tab==="history") wireHistory();
+}
+
+function navBar(tab){
+  const item=(id,icon,label)=>`
+    <button class="navBtn ${tab===id?"on":""}" data-tab="${id}">
+      <span class="navIco">${icon}</span><span>${label}</span></button>`;
+  return `<div class="navSpacer"></div>
+    <div class="navBar">
+      ${item("pray","🕯","תפילה")}
+      ${item("history","📊","היסטוריה")}
+      ${item("settings","⚙️","הגדרות")}
+    </div>`;
+}
+function wireCommon(){
+  document.querySelectorAll("[data-tab]").forEach(b=>b.addEventListener("click",()=>{
+    state.tab=b.dataset.tab; renderHome();
+  }));
+}
+
+/* ---------- לשונית תפילה ---------- */
+function viewPray(now){
+  const f = dayFlags(now,false);
+  const chips=[];
+  if(f.yomtov) chips.push(`<span class="chip imp">🕎 ${f.yomtov}</span>`);
+  if(f.roshChodesh) chips.push(`<span class="chip imp">ראש חודש</span>`);
+  if(f.cholHamoed) chips.push(`<span class="chip imp">חול המועד ${f.cholHamoed}</span>`);
+  if(f.chanukah) chips.push(`<span class="chip imp">חנוכה — נר ${f.chanukah}</span>`);
+  if(f.purim) chips.push(`<span class="chip imp">פורים</span>`);
+  if(f.purimKatan) chips.push(`<span class="chip imp">פורים קטן</span>`);
+  if(f.fast) chips.push(`<span class="chip imp">${f.fast}</span>`);
+  if(f.aseretYemeiTeshuva) chips.push(`<span class="chip imp">עשרת ימי תשובה</span>`);
+  chips.push(`<span class="chip">${f.tachanun?"אומרים תחנון":"אין תחנון"}</span>`);
+  if(f.hallel) chips.push(`<span class="chip">הלל ${f.hallel}</span>`);
+  if(f.torah) chips.push(`<span class="chip">📖 ${f.torah.why} · ${f.torah.n} עולים</span>`);
+  if(f.musaf) chips.push(`<span class="chip imp">מוסף</span>`);
+  if(f.yaaleVeyavo) chips.push(`<span class="chip">יעלה ויבוא</span>`);
+  chips.push(`<span class="chip">${f.geshem?"משיב הרוח":"מוריד הטל"}</span>`);
+  chips.push(`<span class="chip">${f.matar?"ותן טל ומטר":"ותן ברכה"}</span>`);
+  const omerTonight = dayFlags(now,true).omer;
+  if(omerTonight) chips.push(`<span class="chip">הלילה: ${omerTonight} לעומר</span>`);
+
+  const open = hasOpenPrayer() ? `
+    <div class="card openCard">
+      <div class="row">
+        <div>
+          <div style="font-weight:700">⏸ ${TEF_HE[state.tef]} — ממתינה להמשך</div>
+          <div class="sub">עצרת ב"${state.flat[state.curIdx].name}" אחרי ${fmt(elapsed())}</div>
+        </div>
+        <button class="startBtn" id="openResume">המשך</button>
+      </div>
+      <button class="exit" id="openEnd" style="width:100%;margin-top:10px;padding:9px">סיימתי — הצג סיכום</button>
+    </div>` : "";
+
+  const list = f.yomtov
+    ? `<div class="card note">היום ${f.yomtov} — האפליקציה מיועדת לתפילות ימות החול. חג שמח! 🎉</div>`
+    : TEF_LIST.map(t=>`
+      <button class="tefPick" data-pick="${t.id}">
+        <span class="tpIco">${t.icon}</span>
+        <span class="tpTxt"><b>${t.he}</b><span>${t.sub}</span></span>
+        <span class="tpArr">‹</span>
+      </button>`).join("");
+
+  return `
+    <h1>🕯 מניין של אחד</h1>
+    <div class="sub">עוזר תפילה · נוסח חב״ד</div>
+    <div class="installBar" id="installBar">
+      <div class="t">להתקין את האפליקציה על המסך הראשי?</div>
+      <button class="startBtn" id="installBtn">התקן</button>
+      <button class="x" id="installX">✕</button>
+    </div>
+    <div class="card dateCard">
+      <div style="font-size:1.05rem;font-weight:600">${hebDateHe(now)}</div>
+      <div class="sub">${now.toLocaleDateString("he-IL",{weekday:"long",day:"numeric",month:"long"})}</div>
+      <div class="chips">${chips.join("")}</div>
+    </div>
+    ${open}
+    <div class="pickList">${list}</div>`;
+}
+function wirePray(){
+  document.querySelectorAll("[data-pick]").forEach(b=>b.addEventListener("click",()=>openWizard(b.dataset.pick)));
+  const orz=document.getElementById("openResume");
+  if(orz) orz.addEventListener("click",resumePrayer);
+  const oen=document.getElementById("openEnd");
+  if(oen) oen.addEventListener("click",()=>{ state.screen="prayer"; renderDone(true); });
+  wireInstall();
+}
+
+/* ---------- האשף: יחיד/מניין → טווח → משך ---------- */
+function openWizard(tef){
+  state.wiz = {
+    tef, step:1,
+    minyan: !!settings.minyan,
+    from: tef==="shacharit" ? (settings.from||"") : "",
+    to:   tef==="shacharit" ? (settings.to||"")   : "",
+    mins: settings[tef] || DEF[tef]
+  };
+  renderHome();
+}
+function closeWizard(){ state.wiz=null; renderHome(); }
+function wizStep(n){ state.wiz.step=n; renderWizard(); }
+
+function wizGroups(){
+  const w=state.wiz;
+  const f=dayFlags(new Date(), w.tef==="maariv"||w.tef==="kriatShma");
+  const prevM = settings.minyan; settings.minyan = w.minyan;
+  const gc = groupChoices(w.tef,f);
+  settings.minyan = prevM;
+  return gc;
+}
+function wizCount(){
+  const w=state.wiz;
+  const prevM=settings.minyan, prevF=settings.from, prevT=settings.to;
+  settings.minyan=w.minyan;
+  const f=dayFlags(new Date(), w.tef==="maariv"||w.tef==="kriatShma");
+  let G=buildStructure(w.tef,f);
+  if(w.from){ const gi=G.findIndex(g=>g.subs.some(s=>s.id===w.from));
+    if(gi>=0){ const si=G[gi].subs.findIndex(s=>s.id===w.from);
+      G=G.slice(gi); G[0]={name:G[0].name,subs:G[0].subs.slice(si)}; } }
+  if(w.to){ const gj=G.findIndex(g=>g.subs.some(s=>s.id===w.to));
+    if(gj>=0){ const sj=G[gj].subs.findIndex(s=>s.id===w.to);
+      G=G.slice(0,gj+1); G[gj]={name:G[gj].name,subs:G[gj].subs.slice(0,sj+1)}; } }
+  settings.minyan=prevM; settings.from=prevF; settings.to=prevT;
+  return {secs:G.reduce((a,g)=>a+g.subs.length,0), groups:G.length};
+}
+
+function renderWizard(){
+  const w=state.wiz, tl=TEF_LIST.find(t=>t.id===w.tef);
+  const head = `
+    <div class="wizTop">
+      <button class="wizBack" id="wizBack">${w.step===1?"✕":"›"}</button>
+      <div class="wizTitle">${tl.icon} ${tl.he}</div>
+      <div class="wizDots">${[1,2,3].map(i=>`<span class="${i===w.step?"on":(i<w.step?"pastd":"")}"></span>`).join("")}</div>
+    </div>`;
+  let body="";
+
+  if(w.step===1){
+    body = `
+      <div class="wizQ">איך אתה מתפלל?</div>
+      <button class="bigOpt ${!w.minyan?"sel":""}" data-mn="0">
+        <span class="boIco">🕯</span>
+        <span class="boTxt"><b>ביחיד</b><span>בלי קדישים, חזרת הש״ץ וקריאת התורה</span></span>
+      </button>
+      <button class="bigOpt ${w.minyan?"sel":""}" data-mn="1">
+        <span class="boIco">👥</span>
+        <span class="boTxt"><b>במניין</b><span>עם קדישים, חזרת הש״ץ, קריאת התורה ומוסף</span></span>
+      </button>`;
+  }
+
+  if(w.step===2){
+    const gc=wizGroups();
+    const iFrom = w.from ? gc.findIndex(g=>g.firstId===w.from) : -1;
+    body = `
+      <div class="wizQ">מהיכן עד היכן?</div>
+      <div class="segLbl">מתחילים ב־</div>
+      <div class="segList">
+        <button class="seg ${!w.from?"sel":""}" data-from="">מתחילת ${TEF_HE[w.tef]}</button>
+        ${gc.map(g=>`<button class="seg ${w.from===g.firstId?"sel":""}" data-from="${g.firstId}">${g.label}</button>`).join("")}
+      </div>
+      <div class="segLbl">מסיימים ב־</div>
+      <div class="segList">
+        <button class="seg ${!w.to?"sel":""}" data-to="">עד סוף התפילה</button>
+        ${gc.map((g,i)=>`<button class="seg ${w.to===g.lastId?"sel":""} ${i<iFrom?"dim":""}" data-to="${g.lastId}">${g.label}</button>`).join("")}
+      </div>`;
+  }
+
+  if(w.step===3){
+    const c=wizCount(), per=(w.mins*60/Math.max(1,c.secs));
+    body = `
+      <div class="wizQ">כמה זמן להקדיש?</div>
+      <div class="minBig"><span id="minVal">${w.mins}</span><small>דקות</small></div>
+      <div class="minRow">
+        <button class="minBtn" data-d="-5">−5</button>
+        <button class="minBtn" data-d="-1">−1</button>
+        <button class="minBtn" data-d="1">+1</button>
+        <button class="minBtn" data-d="5">+5</button>
+      </div>
+      <div class="chips" style="justify-content:center">
+        ${(MIN_PRESETS[w.tef]||[]).map(m=>`<span class="chip pick ${w.mins===m?"on":""}" data-m="${m}">${m} דק׳</span>`).join("")}
+      </div>
+      <div class="card" style="margin-top:18px">
+        <div class="sumRow"><span>תפילה</span><b>${TEF_HE[w.tef]}</b></div>
+        <div class="sumRow"><span>אופן</span><b>${w.minyan?"במניין":"ביחיד"}</b></div>
+        <div class="sumRow"><span>טווח</span><b>${wizRangeLabel()}</b></div>
+        <div class="sumRow"><span>קטעים</span><b>${c.secs} בתוך ${c.groups} חלקים</b></div>
+        <div class="sumRow"><span>ממוצע לקטע</span><b>${per>=60?fmt(per*1000):Math.round(per)+" שנ׳"}</b></div>
+      </div>`;
+  }
+
+  const foot = w.step<3
+    ? `<button class="wizNext" id="wizNext">המשך ›</button>`
+    : `<button class="wizGo" id="wizGo">התחל ${TEF_HE[w.tef]} ›</button>`;
+
+  app.innerHTML = `<div class="wizWrap">${head}${body}${foot}</div>`;
+
+  document.getElementById("wizBack").addEventListener("click",()=>{
+    if(w.step===1) closeWizard(); else wizStep(w.step-1);
+  });
+  const nx=document.getElementById("wizNext");
+  if(nx) nx.addEventListener("click",()=>wizStep(w.step+1));
+
+  document.querySelectorAll("[data-mn]").forEach(b=>b.addEventListener("click",()=>{
+    w.minyan = b.dataset.mn==="1"; w.from=""; w.to=""; wizStep(2);
+  }));
+  document.querySelectorAll("[data-from]").forEach(b=>b.addEventListener("click",()=>{
+    w.from=b.dataset.from;
+    const gc=wizGroups(), i=w.from?gc.findIndex(g=>g.firstId===w.from):-1;
+    const j=w.to?gc.findIndex(g=>g.lastId===w.to):-1;
+    if(j>=0 && j<i) w.to="";
+    renderWizard();
+  }));
+  document.querySelectorAll("[data-to]").forEach(b=>b.addEventListener("click",()=>{
+    w.to=b.dataset.to; renderWizard();
+  }));
+  document.querySelectorAll("[data-d]").forEach(b=>b.addEventListener("click",()=>{
+    w.mins=Math.max(2,Math.min(180,w.mins+parseInt(b.dataset.d,10))); renderWizard();
+  }));
+  document.querySelectorAll("[data-m]").forEach(b=>b.addEventListener("click",()=>{
+    w.mins=parseInt(b.dataset.m,10); renderWizard();
+  }));
+  const go=document.getElementById("wizGo");
+  if(go) go.addEventListener("click",()=>{
+    settings.minyan=w.minyan; settings[w.tef]=w.mins;
+    if(w.tef==="shacharit"){ settings.from=w.from; settings.to=w.to; }
+    saveSettings();
+    const tef=w.tef, from=w.from, to=w.to;
+    state.wiz=null;
+    startPrayer(tef, from, null, to);
+  });
+}
+function wizRangeLabel(){
+  const w=state.wiz;
+  if(!w.from && !w.to) return "כל התפילה";
+  const gc=wizGroups();
+  const a=w.from?(gc.find(g=>g.firstId===w.from)||{}).label:"ההתחלה";
+  const b=w.to?(gc.find(g=>g.lastId===w.to)||{}).label:"הסוף";
+  return a+" → "+b;
+}
+
+/* ---------- לשונית היסטוריה ---------- */
+function viewHistory(){
+  const h=loadHistory();
+  if(!h.length) return `<h1>📊 היסטוריה</h1>
+    <div class="card note" style="text-align:center;padding:30px 16px">
+      עדיין לא נרשמו תפילות.<br>אחרי התפילה הראשונה יופיעו כאן הזמנים ואחוזי הריכוז.</div>`;
+  const week=h.filter(r=>Date.now()-new Date(r.d).getTime()<7*864e5);
+  const wAway=week.reduce((a,r)=>a+(r.away||0),0), wMs=week.reduce((a,r)=>a+r.ms,0);
+  const wPct=wMs?Math.max(0,Math.round((1-wAway/wMs)*100)):100;
+  const st=streakDays();
+  const byDay={};
+  h.forEach(r=>{ (byDay[r.d]=byDay[r.d]||[]).push(r); });
+  const days=Object.keys(byDay).sort().reverse().slice(0,14);
+  return `
+    <h1>📊 היסטוריה</h1>
+    <div class="card">
+      <div class="hStats">
+        <div><b>${week.length}</b><span>תפילות השבוע</span></div>
+        <div><b>${wPct}%</b><span>ריכוז</span></div>
+        <div><b>${st||0}</b><span>ימים ברצף</span></div>
+      </div>
+      <div class="sub" style="text-align:center">סה״כ ${fmt(wAway)} מחוץ לאפליקציה השבוע</div>
+    </div>
+    ${days.map(d=>{
+      const dd=new Date(d);
+      return `<div class="card" style="padding:10px 14px">
+        <div class="sub" style="margin-bottom:4px">${dd.toLocaleDateString("he-IL",{weekday:"long",day:"numeric",month:"long"})}</div>
+        ${byDay[d].map(r=>{
+          const pct=r.ms?Math.max(0,Math.round((1-(r.away||0)/r.ms)*100)):100;
+          const cls=pct>=90?"good":(pct>=70?"mid":"low");
+          return `<div class="hRow">
+            <span class="hT">${TEF_HE[r.t]||r.t}${r.ab?' <span class="sub">(הופסקה)</span>':""}</span>
+            <span class="hM">${fmt(r.ms)}</span>
+            <span class="hP ${cls}">${pct}%</span>
+          </div>`;}).join("")}
+      </div>`;}).join("")}
+    <button class="exit" id="clrHist" style="width:100%;margin-top:6px;padding:10px">מחיקת ההיסטוריה</button>`;
+}
+function wireHistory(){
+  const c=document.getElementById("clrHist");
+  if(c) c.addEventListener("click",()=>{
+    if(!confirm("למחוק את כל היסטוריית התפילות?")) return;
+    try{ localStorage.removeItem("mse-history"); }catch(e){}
+    renderHome();
+  });
+}
+
+/* ---------- לשונית הגדרות ---------- */
+function viewSettings(){
+  return `
+    <h1>⚙️ הגדרות</h1>
+    <div class="card">
+      <label class="sw"><input type="checkbox" id="ilToggle" ${settings.israel?"checked":""}> אני מתפלל/ת בארץ ישראל</label>
+      <div class="note">משפיע על "ותן טל ומטר", חול המועד, ימים טובים וברכת כהנים.</div>
+    </div>
+    <div class="card">
+      <label class="sw"><input type="checkbox" id="minyanToggle" ${settings.minyan?"checked":""}> ברירת מחדל: מניין</label>
+      <div class="note">מה ייבחר מראש באשף. אפשר לשנות בכל תפילה.</div>
+    </div>
+    <div class="card">
+      <div style="font-weight:700;margin-bottom:8px">מה להציג בזמן התפילה</div>
+      <div class="chips">
+        ${[["progress","רק ההתקדמות"],["text","📖 נוסח התפילה"],["info","ℹ️ מידע על הקטע"]]
+          .map(([k,l])=>`<span class="chip pick ${(settings.view||"progress")===k?"on":""}" data-view="${k}">${l}</span>`).join("")}
+      </div>
+      <div class="note">בשתי האפשרויות האחרונות התוכן פתוח תמיד ומתחלף לבד עם הקטע,
+      ואפשר לעבור בין קטעים בכפתורי הקודם/הבא.</div>
+    </div>
+    <div class="card">
+      <label class="sw"><input type="checkbox" id="autoAdvToggle" ${settings.autoAdv!==false?"checked":""}> התקדמות אוטומטית בין קטעים</label>
+      <div class="note">כשמכובה — הקטע לא יתחלף לבד אף פעם, וההתקדמות רק בלחיצה על "סיימתי".
+      גם כשמופעל אפשר לנעול קטע בודד בכפתור 📍 שבכרטיס.</div>
+    </div>
+    <div class="card">
+      <div style="font-weight:700;margin-bottom:8px">מתי מניחים טלית ותפילין</div>
+      <div class="chips">
+        ${[["start","בתחילה — אחרי ברכות השחר"],["afterShachar","אחרי תפילת השחר"],
+           ["afterKorbanot","אחרי הקרבנות"],["beforePsukei","לפני פסוקי דזמרה"],
+           ["beforeKS","לפני ברכות קריאת שמע"]]
+          .map(([k,l])=>`<span class="chip pick ${(settings.ttPlace||"start")===k?"on":""}" data-tt="${k}">${l}</span>`).join("")}
+      </div>
+      <div class="note">מזיז את הקטעים למקום שבו אתה נוהג להניח.</div>
+    </div>
+    <div class="card">
+      <label class="sw"><input type="checkbox" id="rtToggle" ${settings.rt?"checked":""}> מניח/ה תפילין דרבינו תם</label>
+      <div class="note">מוסיף בסוף שחרית ק״ש, קדש לי, והיה כי יביאך ושש זכירות — עם מעבר מהיר אליהם באמצע התפילה.</div>
+    </div>
+    <div class="card">
+      <div style="font-weight:700;margin-bottom:8px">משך ברירת מחדל</div>
+      ${TEF_LIST.map(t=>`
+        <div class="row" style="padding:5px 0">
+          <span>${t.icon} ${t.he}</span>
+          <span><input class="minIn" data-min="${t.id}" type="number" min="2" max="180" value="${settings[t.id]}"> <span class="sub">דק׳</span></span>
+        </div>`).join("")}
+    </div>
+    <div class="card note">
+      <b>מניין של אחד</b> · נוסח תהלת ה׳ (חב״ד)<br>
+      חלוקת הזמנים היא הערכה לפי אורך הטקסט בסידור — לא הוראה הלכתית.<br>
+      התוכן הלימודי מובא עם מקורות, ואינו פסק הלכה.
+    </div>`;
+}
+function wireSettings(){
+  const il=document.getElementById("ilToggle");
+  if(il) il.addEventListener("change",()=>{ settings.israel=il.checked; saveSettings(); });
+  const mn=document.getElementById("minyanToggle");
+  if(mn) mn.addEventListener("change",()=>{ settings.minyan=mn.checked; saveSettings(); });
+  const rt=document.getElementById("rtToggle");
+  if(rt) rt.addEventListener("change",()=>{ settings.rt=rt.checked; saveSettings(); });
+  document.querySelectorAll("[data-view]").forEach(c=>c.addEventListener("click",()=>{
+    settings.view=c.dataset.view; saveSettings(); renderHome();
+  }));
+  const aa=document.getElementById("autoAdvToggle");
+  if(aa) aa.addEventListener("change",()=>{ settings.autoAdv=aa.checked; saveSettings(); });
+  document.querySelectorAll("[data-tt]").forEach(c=>c.addEventListener("click",()=>{
+    settings.ttPlace=c.dataset.tt; saveSettings(); renderHome();
+  }));
+  document.querySelectorAll("[data-min]").forEach(inp=>inp.addEventListener("change",()=>{
+    const k=inp.dataset.min;
+    settings[k]=Math.max(2,Math.min(180,parseInt(inp.value,10)||DEF[k]));
+    saveSettings();
+  }));
+}
+
+/* ================= תפילה ================= */
+/* נקודות התחלה אפשריות לשחרית */
+const START_POINTS = [
+  {id:"", label:"מההתחלה"},
+  {id:"birchot", label:"מברכות השחר"},
+  {id:"deshen", label:"מקרבנות"},
+  {id:"hodu", label:"מהודו"},
+  {id:"baruchsheamar", label:"מפסוקי דזמרה"},
+];
+
+function startPrayer(tef, fromId, _unused, toArg){
+  const now = new Date();
+  const f = dayFlags(now, tef==="maariv" || tef==="kriatShma");
+  let groups = buildStructure(tef,f);
+
+  // טווח: מקטע עד קטע. מה שמחוץ לטווח יורד מהתפילה, והזמן מתחלק בין הנותרים.
+  if(fromId){
+    const gi = groups.findIndex(g=>g.subs.some(s=>s.id===fromId));
+    if(gi>=0){
+      const si = groups[gi].subs.findIndex(s=>s.id===fromId);
+      groups = groups.slice(gi);
+      groups[0] = {name:groups[0].name, subs:groups[0].subs.slice(si)};
+    }
+  }
+  const toId = (toArg!==undefined && toArg!==null) ? toArg : settings.to;
+  if(toId){
+    const gj = groups.findIndex(g=>g.subs.some(s=>s.id===toId));
+    if(gj>=0){
+      const sj = groups[gj].subs.findIndex(s=>s.id===toId);
+      groups = groups.slice(0,gj+1);
+      groups[gj] = {name:groups[gj].name, subs:groups[gj].subs.slice(0,sj+1)};
+    }
+  }
+  if(!groups.length || !groups.some(g=>g.subs.length)) { alert("הטווח שנבחר ריק — בודקים את הבחירה."); return; }
+  state.fromId = fromId||"";
+  state.toId = toId||"";
+
+  // שיטוח + חישוב זמנים לפי משקל
+  const flat=[];
+  groups.forEach((g,gi)=>g.subs.forEach(s=>{ s.gi=gi; s.grpName=g.name; flat.push(s); }));
+  const totalW = flat.reduce((a,s)=>a+s.w,0);
+  const totalMs = settings[tef]*60000;
+  let acc=0;
+  flat.forEach((s,i)=>{ s.i=i; s.start = acc/totalW*totalMs; acc+=s.w; });
+  // גבולות עקביים: סוף כל קטע = תחילת הבא (מונע שגיאות עיגול)
+  flat.forEach((s,i)=>{
+    s.end = (i+1<flat.length) ? flat[i+1].start : totalMs;
+    s.dur = s.end - s.start;
+  });
+  groups.forEach(g=>{
+    g.start = g.subs[0].start;
+    g.end = g.subs[g.subs.length-1].end;
+    g.dur = g.end - g.start;
+  });
+  const now2 = Date.now();
+  flat[0]._enteredTs = now2;
+  state = Object.assign(state,{screen:"prayer", tef, groups, flat, flags:f, fromId:fromId||"",
+    startTs:now2, planAnchor:0, anchorTs:now2, log:[], done:new Set(), doneOpen:false,
+    paused:false, pauseStart:0, rtReturn:null, away:[], awayStart:0, hold:false,
+    totalMs, curIdx:0, quoteIdx:0});
+
+  requestWake();
+  renderPrayer();
+  state.tickTimer = setInterval(tick, 500);
+  state.quoteTimer = setInterval(()=>rotateQuote(false), 25000);
+}
+
+/* ---------- השהיה ---------- */
+function togglePause(){
+  if(state.paused){
+    // בחזרה מזיזים את כל נקודות הייחוס קדימה — כאילו הזמן לא עבר
+    const d = Date.now()-state.pauseStart;
+    state.startTs += d;
+    state.anchorTs += d;
+    state.flat.forEach(s=>{ if(s._enteredTs) s._enteredTs += d; });
+    state.paused = false;
+    requestWake();
+  } else {
+    state.pauseStart = Date.now();
+    state.paused = true;
+    releaseWake();
+  }
+  renderPause();
+  tick();
+}
+function renderPause(){
+  const ov=document.getElementById("pauseOv");
+  if(ov) ov.style.display = state.paused ? "flex" : "none";
+  const b=document.getElementById("pauseBtn");
+  if(b) b.textContent = state.paused ? "▶" : "⏸";
+}
+function restartPrayer(){
+  if(!confirm("להתחיל את התפילה מחדש?")) return;
+  startPrayer(state.tef, state.fromId);
+}
+
+/* ---------- יציאה מהתפילה: תמיד אפשר לחזור ---------- */
+function askExit(){
+  if(document.getElementById("exitOv")) return;
+  const el=document.createElement("div");
+  el.className="pauseOv"; el.id="exitOv"; el.style.display="flex";
+  el.innerHTML=`
+    <div class="pauseBox">
+      <div style="font-size:2rem">🕯</div>
+      <div style="font-size:1.15rem;margin:10px 0 4px">אתה באמצע ${TEF_HE[state.tef]}</div>
+      <div class="sub">${fmt(elapsed())} · ${state.flat[state.curIdx].name}</div>
+      <button class="startBtn" id="xBack" style="margin-top:20px;width:100%">חזרה לתפילה</button>
+      <button class="exit" id="xHold" style="margin-top:10px;width:100%;padding:11px">
+        עצירה — אשוב להמשיך אחר כך</button>
+      <button class="exit" id="xEnd" style="margin-top:8px;width:100%;padding:11px">
+        סיימתי — הצג סיכום</button>
+    </div>`;
+  document.body.appendChild(el);
+  const close=()=>el.remove();
+  document.getElementById("xBack").addEventListener("click",close);
+  document.getElementById("xHold").addEventListener("click",()=>{
+    close();
+    if(!state.paused) togglePause();       // עוצרים את השעון
+    state.open = true;                     // התפילה נשארת פתוחה
+    state.screen = "home";
+    clearTimers(); releaseWake();
+    renderHome();
+  });
+  document.getElementById("xEnd").addEventListener("click",()=>{ close(); renderDone(true); });
+}
+
+/* חזרה לתפילה שנשארה פתוחה */
+function resumePrayer(){
+  if(!state.flat || !state.flat.length) return;
+  const ov=document.getElementById("exitOv"); if(ov) ov.remove();
+  state.screen = "prayer";
+  state.open = false;
+  state.pendingRec = null;
+  requestWake();
+  renderPrayer();
+  state.tickTimer = setInterval(tick, 500);
+  state.quoteTimer = setInterval(()=>rotateQuote(false), 25000);
+  if(state.paused) togglePause();          // ממשיכים מאותה נקודה בדיוק
+  tick();
+}
+function hasOpenPrayer(){ return !!(state.open && state.flat && state.flat.length); }
+
+/* השעון האמיתי — כמה זמן באמת עבר */
+function elapsed(){
+  return (state.paused ? state.pauseStart : Date.now()) - state.startTs;
+}
+
+/* מיקום בתכנון — איפה אנחנו ברצף הקטעים */
+function planPos(){
+  return state.planAnchor + ((state.paused ? state.pauseStart : Date.now())-state.anchorTs);
+}
+
+/* מה נותר לפי התכנון = סכום הקטעים שעוד לא בוצעו, פחות ההתקדמות בקטע הנוכחי.
+   סיימת קטע של 1:30 בדקה? כל 1:30 יורדים מהמאזן והצפי מתקצר ב-30 שניות. */
+function planRemaining(){
+  let ms=0;
+  state.flat.forEach(s=>{ if(!state.done.has(s.i)) ms+=s.dur; });
+  const s=state.flat[state.curIdx];
+  if(s && !state.done.has(state.curIdx)){
+    ms -= Math.min(s.dur, nowRef()-(s._enteredTs||state.anchorTs));
+  }
+  return Math.max(0,ms);
+}
+/* השעון "הקפוא" בזמן השהיה */
+function nowRef(){ return state.paused ? state.pauseStart : Date.now(); }
+
+/* קפיצה לקטע: רושמים ביומן כמה זמן באמת בילינו במקטע הקודם */
+function jumpTo(i, byUser){
+  const now2 = Date.now();
+  const from = state.curIdx;
+  if(from>=0 && from!==i){
+    const s = state.flat[from];
+    const spent = now2 - (s._enteredTs || state.anchorTs);
+    if(spent>0) state.log.push({i:from, id:s.id, name:s.name, planned:s.dur, actual:spent, byUser:!!byUser});
+  }
+  state.planAnchor = state.flat[i].start;
+  state.anchorTs = now2;
+  state.hold = false;
+  state.flat[i]._enteredTs = now2;
+  state.curIdx = i;
+}
+
+function renderPrayer(){
+  const f=state.flags;
+  const notes = amidahNotes(f,state.tef);
+  const fromLbl = state.fromId||state.toId ? "טווח מותאם" : "";
+  app.innerHTML = `
+    <div class="pauseOv" id="pauseOv" style="display:none">
+      <div class="pauseBox">
+        <div style="font-size:2.4rem">⏸</div>
+        <div style="font-size:1.2rem;margin:8px 0 4px">התפילה מושהית</div>
+        <div class="sub" id="pauseInfo"></div>
+        <button class="startBtn" id="resumeBtn" style="margin-top:18px">המשך ▶</button>
+        <button class="exit" id="restartBtn2" style="margin-top:10px">התחל מחדש ↻</button>
+      </div>
+    </div>
+    <div class="topbar">
+      <button class="exit" id="exitBtn">יציאה</button>
+      <div class="ctrls">
+        <button class="ico" id="restartBtn" title="התחל מחדש">↻</button>
+        <button class="ico" id="pauseBtn" title="השהיה">⏸</button>
+      </div>
+      <div style="text-align:left">
+        <div style="font-weight:700">${TEF_HE[state.tef]}${state.fromId?` <span class="sub">· ${fromLbl}</span>`:""}</div>
+        <div class="sub">${hebDateHe(f.effCivil)}${(state.tef==="maariv"||state.tef==="kriatShma")?" (מהערב)":""}</div>
+      </div>
+    </div>
+    <div class="clockWrap">
+      <div class="clock" id="clock">00:00</div>
+      <div class="remain" id="remain"></div>
+      <div class="pace" id="pace"></div>
+      <div class="awayLine" id="awayLine"></div>
+    </div>
+    <div class="barWrap"><div class="bar" id="bar"></div></div>
+    <div class="chips" style="justify-content:center">${notes.map(n=>`<span class="chip imp">${n}</span>`).join("")}</div>
+    <div class="quote" id="quote"><div class="q" id="qText"></div><div class="s" id="qSrc"></div></div>
+    <div id="listWrap"></div>
+    <div class="hint">נגיעה על קטע = "אני אוחז כאן" · החלקה הצידה = בוצע</div>
+    <button class="finishBtn" id="finBtn">סיימתי את התפילה ✔</button>`;
+
+  document.getElementById("exitBtn").addEventListener("click",askExit);
+  document.getElementById("finBtn").addEventListener("click",()=>renderDone(false));
+  document.getElementById("pauseBtn").addEventListener("click",togglePause);
+  document.getElementById("resumeBtn").addEventListener("click",togglePause);
+  document.getElementById("restartBtn").addEventListener("click",restartPrayer);
+  document.getElementById("restartBtn2").addEventListener("click",restartPrayer);
+  renderList();
+  renderPause();
+  tick();
+  rotateQuote(true);
+}
+
+/* ---------- רשימת הקטעים: בוצע (מקופל) → הקטע הנוכחי → הבא בתור ---------- */
+function actualOf(i){
+  let ms=0;
+  state.log.forEach(r=>{ if(r.i===i) ms+=r.actual; });
+  if(i===state.curIdx) ms += nowRef()-(state.flat[i]._enteredTs||state.anchorTs);
+  return ms;
+}
+
+function renderList(){
+  const wrap=document.getElementById("listWrap");
+  if(!wrap) return;
+  const done = [...state.done].sort((a,b)=>a-b);
+  const cur = state.curIdx;
+  const upcoming = state.flat.filter(s=>!state.done.has(s.i) && s.i!==cur);
+
+  // חלון "בוצע" — מקופל
+  const doneHtml = done.length ? `
+    <div class="drawer ${state.doneOpen?"open":""}" id="drawer">
+      <div class="drawerHdr" id="drawerHdr">
+        <span class="dv">✓</span>
+        <span class="dnm">בוצע — ${done.length} קטעים</span>
+        <span class="dtm">${fmt(done.reduce((a,i)=>a+actualOf(i),0))}</span>
+        <span class="arr">◀</span>
+      </div>
+      <div class="drawerBody">
+        ${done.map(i=>`
+          <div class="dRow" data-back="${i}">
+            <span class="dv">✓</span>
+            <span class="dnm">${state.flat[i].name}</span>
+            <span class="dtm">${fmt(actualOf(i))}</span>
+          </div>`).join("")}
+        <div class="hint" style="padding:6px 0 10px">נגיעה על קטע מחזירה אליו</div>
+      </div>
+    </div>` : "";
+
+  // הקטע הנוכחי
+  const s = state.flat[cur];
+  const curHtml = `
+    <div class="curCard ${s.rt?"rt":""}" id="curCard">
+      <div class="curTop">
+        <span class="curGrp">${s.rt?"⇄ ":""}${s.grpName}</span>
+        <span class="curPlan">מתוכנן ${fmtMin(s.dur)}</span>
+      </div>
+      <div class="curNm">${s.name}${s.badge?`<span class="badge">${s.badge}</span>`:""}</div>
+      <div class="curBar"><div id="curBarFill"></div></div>
+      <div class="curNote" id="curNote"></div>
+      <div class="curBot">
+        <span class="curElapsed" id="curElapsed">00:00</span>
+        <div class="curBtns">
+          ${settings.autoAdv===false?"":`<button class="holdBtn ${state.hold?"on":""}" id="holdBtn"
+             title="להישאר בקטע">${state.hold?"📌":"📍"}</button>`}
+          ${(settings.view||"progress")==="progress" && hasText(s.id)?`<button class="studyBtn" id="textBtn">📖 טקסט</button>`:""}
+          ${(settings.view||"progress")==="progress" && hasStudy(s.id)?`<button class="studyBtn" id="studyBtn">ℹ️</button>`:""}
+          <button class="doneBtn" id="doneBtn">סיימתי ✓</button>
+        </div>
+      </div>
+    </div>`;
+
+  // מעבר לר"ת / חזרה לתפילה
+  const rtHtml = hasRT() ? (
+    inRT()
+      ? `<button class="rtBtn back" id="rtBtn">↩ חזרה ל${state.rtReturn!=null&&state.flat[state.rtReturn]
+            ? "‏"+state.flat[state.rtReturn].name : "תפילה"}</button>`
+      : `<button class="rtBtn" id="rtBtn">⇄ מעבר לתפילין דרבינו תם</button>`
+  ) : "";
+
+  // הבא בתור — מקובץ לפי קטע כללי
+  let lastGrp=null; const parts=[];
+  upcoming.forEach(u=>{
+    if(u.grpName!==lastGrp){ parts.push(`<div class="upGrp">${u.grpName}</div>`); lastGrp=u.grpName; }
+    parts.push(`
+      <div class="upRow" data-i="${u.i}">
+        <div class="swipeBg">✓ בוצע</div>
+        <div class="upIn">
+          <span class="upDot"></span>
+          <span class="upNm">${u.name}${u.badge?`<span class="badge">${u.badge}</span>`:""}</span>
+          <span class="upTm">${fmtMin(u.dur)}</span>
+        </div>
+      </div>`);
+  });
+
+  const mode = settings.view || "progress";
+  const upBlock = parts.length
+    ? (mode==="progress"
+        ? `<div class="upList">${parts.join("")}</div>`
+        : `<div class="drawer ${state.upOpen?"open":""}" id="upDrawer">
+             <div class="drawerHdr" id="upHdr">
+               <span class="dnm">הבא בתור — ${upcoming.length} קטעים</span>
+               <span class="arr">◀</span>
+             </div>
+             <div class="drawerBody"><div class="upList">${parts.join("")}</div></div>
+           </div>`)
+    : `<div class="hint" style="margin-top:14px">זה הקטע האחרון 🙏</div>`;
+  wrap.innerHTML = doneHtml + curHtml + panelHtml(s) + rtHtml + upBlock;
+
+  // אירועים
+  const dh=document.getElementById("drawerHdr");
+  if(dh) dh.addEventListener("click",()=>{ state.doneOpen=!state.doneOpen; renderList(); });
+  wrap.querySelectorAll("[data-back]").forEach(el=>el.addEventListener("click",()=>{
+    goBack(parseInt(el.dataset.back,10));
+  }));
+  document.getElementById("doneBtn").addEventListener("click",()=>completeCurrent());
+  const sb=document.getElementById("studyBtn");
+  if(sb) sb.addEventListener("click",()=>openStudy(state.flat[state.curIdx]));
+  const tb=document.getElementById("textBtn");
+  if(tb) tb.addEventListener("click",()=>openText(state.flat[state.curIdx]));
+  const hb=document.getElementById("holdBtn");
+  if(hb) hb.addEventListener("click",()=>{ state.hold=!state.hold; renderList(); tick(); });
+  const rb=document.getElementById("rtBtn");
+  if(rb) rb.addEventListener("click",toggleRT);
+  const uh=document.getElementById("upHdr");
+  if(uh) uh.addEventListener("click",()=>{ state.upOpen=!state.upOpen; renderList(); });
+  wrap.querySelectorAll("[data-nav]").forEach(b=>b.addEventListener("click",()=>{
+    const d=parseInt(b.dataset.nav,10);
+    if(d>0) completeCurrent();
+    else if(state.curIdx>0) goBack(state.curIdx-1);
+  }));
+  wrap.querySelectorAll("[data-fs]").forEach(b=>b.addEventListener("click",()=>{
+    let z=Math.max(.8,Math.min(2.2, fsize()+parseInt(b.dataset.fs,10)*0.1));
+    try{ localStorage.setItem("mse-fs",z); }catch(e){}
+    const pb=document.getElementById("panBody"); if(pb) pb.style.fontSize=z+"rem";
+  }));
+  wrap.querySelectorAll(".upRow").forEach(el=>attachRow(el));
+  updateCurCard();
+}
+
+/* נגיעה = "אני אוחז כאן" · החלקה = "בוצע" */
+function attachRow(el){
+  const i=parseInt(el.dataset.i,10);
+  const inner=el.querySelector(".upIn");
+  let x0=null,y0=null,dx=0,moved=false;
+  el.addEventListener("touchstart",e=>{
+    x0=e.touches[0].clientX; y0=e.touches[0].clientY; dx=0; moved=false;
+    inner.style.transition="none";
+  },{passive:true});
+  el.addEventListener("touchmove",e=>{
+    if(x0===null) return;
+    const nx=e.touches[0].clientX-x0, ny=e.touches[0].clientY-y0;
+    if(Math.abs(ny)>Math.abs(nx)) return;      // גלילה אנכית
+    dx=nx; moved=true;
+    inner.style.transform="translateX("+dx+"px)";
+    el.classList.toggle("swiping", Math.abs(dx)>60);
+  },{passive:true});
+  el.addEventListener("touchend",()=>{
+    inner.style.transition="transform .18s";
+    if(Math.abs(dx)>60){ markDone(i); return; }
+    inner.style.transform="";
+    el.classList.remove("swiping");
+    if(!moved) goTo(i);
+    x0=null;
+  });
+  el.addEventListener("click",()=>{ if(!moved) goTo(i); });
+}
+
+/* "אני אוחז כאן" קדימה: מה שלפניו נחשב שעבר */
+function goTo(i){
+  const from = state.curIdx;
+  if(i>from){ for(let j=0;j<i;j++) state.done.add(j); }
+  state.done.delete(i);
+  jumpTo(i,true);
+  renderList(); tick(); rotateQuote(true);
+}
+
+/* חזרה לקטע מתוך חלון "בוצע": מבטל את הסימון שלו ושל כל הקטעים
+   שאחריו — הם חוזרים לרשימה. מה שלפניו נשאר מסומן. */
+function goBack(i){
+  for(let j=i;j<state.flat.length;j++) state.done.delete(j);
+  jumpTo(i,true);
+  renderList(); tick(); rotateQuote(true);
+}
+
+/* ---------- פאנל מוטמע: טקסט או מידע, מתחלף עם הקטע ---------- */
+function fsize(){ try{ return parseFloat(localStorage.getItem("mse-fs"))||1; }catch(e){ return 1; } }
+
+/* תנאים לפסקאות שנאמרות רק בימים מסוימים.
+   הוראה בצורה "§@tag ..." חלה על עצמה ועל הפסקה שאחריה. */
+const COND = {
+  ayt:      f => !!(f && f.aseretYemeiTeshuva),
+  rc:       f => !!(f && (f.roshChodesh || f.cholHamoed)),
+  nisim:    f => !!(f && (f.chanukah || f.purim)),
+  chanukah: f => !!(f && f.chanukah),
+  purim:    f => !!(f && f.purim),
+  geshem:   f => !!(f && f.geshem),
+  tal:      f => !(f && f.geshem),
+  monthu:   f => !!(f && (f.dow===1 || f.dow===4)),
+  minyan:   () => !!settings.minyan,
+  tishabav: f => !!(f && f.fast && String(f.fast).indexOf("תשעה באב")>=0),
+  motzash:  f => !!(f && f.motzaeiShabbat),
+  fast:     f => !!(f && f.fast)
+};
+
+function applyCond(arr){
+  const f = state.flags;
+  const out = [];
+  for(let i=0;i<arr.length;i++){
+    const p = arr[i];
+    const m = /^§@([a-z]+)\s*/.exec(p);
+    if(!m){ out.push(p); continue; }
+    const test = COND[m[1]];
+    const show = test ? test(f) : true;
+    if(show){
+      out.push("§ " + p.slice(m[0].length));
+      if(i+1<arr.length && arr[i+1].indexOf("§")!==0) out.push(arr[++i]);
+    } else {
+      if(i+1<arr.length && arr[i+1].indexOf("§")!==0) i++;
+    }
+  }
+  return out;
+}
+
+/* מחזיר את נוסח הקטע. קטעים מסוימים משתנים לפי היום. */
+function textFor(id){
+  let t;
+  if(id==="shirshelyom" && typeof SHIR_YOM_TEXTS!=="undefined"){
+    const d = (state.flags && typeof state.flags.dow==="number") ? state.flags.dow : new Date().getDay();
+    t = SHIR_YOM_TEXTS[d] || SHIR_YOM_TEXTS[0];
+  } else if(id==="omer" && typeof OMER_DAYS!=="undefined"){
+    /* מכניסים את ספירת הלילה עצמו במקום ההוראה הכללית */
+    const n = state.flags && state.flags.omer;
+    t = (TEXTS.omer||[]).slice();
+    if(n>0 && OMER_DAYS[n-1]) t.splice(1, 0, "§ ספירת הלילה", OMER_DAYS[n-1]);
+  } else {
+    t = TEXTS[id];
+  }
+  return t ? applyCond(t) : t;
+}
+
+function panelHtml(s){
+  const mode = settings.view || "progress";
+  if(mode==="progress") return "";
+  const nav = `
+    <div class="panNav">
+      <button class="panBtn" data-nav="-1" ${state.curIdx===0?"disabled":""}>‹ הקודם</button>
+      <span class="panPos">${state.curIdx+1} / ${state.flat.length}</span>
+      <button class="panBtn go" data-nav="1">הבא ›</button>
+    </div>`;
+  if(mode==="text"){
+    const t = textFor(s.id);
+    const body = t ? t.map(p=>p.indexOf("§")===0
+        ? `<div class="tHint">${p.slice(1).trim()}</div>`
+        : `<p class="tP">${p}</p>`).join("")
+      : `<div class="panEmpty">הנוסח של קטע זה עדיין לא הוכנס לאפליקציה.<br>
+         <span class="sub">בינתיים מהסידור — והקצב כאן ממשיך לעבוד.</span></div>`;
+    return `<div class="panel" id="panel">
+      <div class="panTop">
+        <span class="panLbl">📖 נוסח התפילה</span>
+        <span><button class="tFs" data-fs="-1">א־</button>
+              <button class="tFs" data-fs="1">א+</button></span>
+      </div>
+      <div class="panBody" id="panBody" style="font-size:${fsize()}rem">${body}</div>
+      ${nav}
+    </div>`;
+  }
+  // מידע
+  const c = CONTENT[s.id];
+  if(!c) return `<div class="panel"><div class="panEmpty">אין מידע לקטע זה.</div>${nav}</div>`;
+  const m = maalaFor(s.grpName, state.tef);
+  const words = (c.words&&c.words.length)
+    ? c.words.map(w=>`<div class="wRow"><div class="wW">${w[0]}</div><div class="wM">${w[1]}</div></div>`).join("")
+    : "";
+  return `<div class="panel" id="panel">
+      <div class="panTop"><span class="panLbl">ℹ️ על הקטע</span></div>
+      <div class="panBody">
+        <p class="tP" style="font-size:.97rem;line-height:1.75">${c.what}</p>
+        ${c.whatSrc?`<div class="srcLine">מקור: ${c.whatSrc}</div>`:""}
+        ${words?`<div class="panSec">פירוש מילים</div>${words}`:""}
+        ${c.hasid?`<div class="panSec">מתורת החסידות</div>
+          <p class="tP" style="font-size:.95rem;line-height:1.75">${c.hasid}</p>
+          ${c.hasidSrc?`<div class="srcLine">מקור: ${c.hasidSrc}</div>`:""}`:""}
+        <div class="ladderNote"><b>${m.t}</b><br>${m.x}<div class="srcLine">${m.s}</div></div>
+      </div>
+      ${nav}
+    </div>`;
+}
+
+/* ---------- מסך קריאה: נוסח התפילה ---------- */
+function hasText(id){ return typeof TEXTS!=="undefined" && !!TEXTS[id]; }
+
+function openText(sec){
+  const t = TEXTS[sec.id];
+  if(!t) return;
+  let size = 1;
+  try{ size = parseFloat(localStorage.getItem("mse-fs")) || 1; }catch(e){}
+  const body = t.map(p=>p.indexOf("§")===0
+    ? `<div class="tHint">${p.slice(1).trim()}</div>`
+    : `<p class="tP">${p}</p>`).join("");
+  const el=document.createElement("div");
+  el.className="textOv"; el.id="textOv";
+  el.innerHTML = `
+    <div class="tTop">
+      <button class="wizBack" id="tX">✕</button>
+      <div class="tTitle">${sec.name}</div>
+      <div class="tClock" id="tClock"></div>
+      <button class="tFs" id="tMinus">א־</button>
+      <button class="tFs" id="tPlus">א+</button>
+    </div>
+    <div class="tBody" id="tBody" style="font-size:${size}rem">${body}</div>
+    <div class="tFoot">
+      <button class="tDone" id="tDone">סיימתי את הקטע ✓</button>
+    </div>`;
+  document.body.appendChild(el);
+  const close=()=>{ el.remove(); state.textOpen=false; };
+  state.textOpen=true;
+  document.getElementById("tX").addEventListener("click",close);
+  document.getElementById("tDone").addEventListener("click",()=>{ close(); completeCurrent(); });
+  const bodyEl=document.getElementById("tBody");
+  const setFs=(d)=>{
+    size = Math.max(.8, Math.min(2.2, size+d));
+    bodyEl.style.fontSize = size+"rem";
+    try{ localStorage.setItem("mse-fs", size); }catch(e){}
+  };
+  document.getElementById("tPlus").addEventListener("click",()=>setFs(.1));
+  document.getElementById("tMinus").addEventListener("click",()=>setFs(-.1));
+  updateTextClock();
+}
+function updateTextClock(){
+  const c=document.getElementById("tClock");
+  if(!c || state.screen!=="prayer") return;
+  const s=state.flat[state.curIdx];
+  const spent=nowRef()-(s._enteredTs||state.anchorTs);
+  const over=spent-s.dur;
+  c.textContent = fmt(spent)+(over>0?" +"+fmt(over):"");
+  c.className = "tClock"+(over>0?" over":"");
+}
+
+/* ---------- מסך לימוד: מה זה · מילים · חסידות ---------- */
+function hasStudy(id){ return typeof CONTENT!=="undefined" && !!CONTENT[id]; }
+
+function openStudy(sec){
+  const c = CONTENT[sec.id];
+  if(!c) return;
+  const wordsHtml = (c.words&&c.words.length) ? c.words.map(w=>`
+    <div class="wRow"><div class="wW">${w[0]}</div><div class="wM">${w[1]}</div></div>`).join("")
+    : `<div class="sub">אין מילים מיוחדות בקטע זה.</div>`;
+
+  const el=document.createElement("div");
+  el.className="sheetOv";
+  el.id="studyOv";
+  el.innerHTML = `
+    <div class="sheet">
+      <div class="sheetGrab"></div>
+      <div class="sheetHdr">
+        <div>
+          <div class="sheetGrp">${sec.grpName}</div>
+          <div class="sheetNm">${sec.name}</div>
+        </div>
+        <button class="sheetX" id="sheetX">✕</button>
+      </div>
+      <div class="tabs">
+        <button class="tab on" data-t="what">מה זה</button>
+        <button class="tab" data-t="words">מילים</button>
+        ${c.hasid?`<button class="tab" data-t="hasid">חסידות</button>`:""}
+      </div>
+      <div class="sheetBody">
+        <div class="pane on" id="p-what">
+          <p>${c.what}</p>
+          ${c.whatSrc?`<div class="srcLine">מקור: ${c.whatSrc}</div>`:""}
+        </div>
+        <div class="pane" id="p-words">${wordsHtml}</div>
+        ${c.hasid?`<div class="pane" id="p-hasid">
+          <p>${c.hasid}</p>
+          ${c.hasidSrc?`<div class="srcLine">מקור: ${c.hasidSrc}</div>`:""}
+        </div>`:""}
+        ${(()=>{ const m=maalaFor(sec.grpName, state.tef); return `
+        <div class="ladderNote">
+          <b>${m.t}</b><br>${m.x}
+          <div class="srcLine">${m.s}</div>
+        </div>`; })()}
+        <div class="disclaim">התוכן להתבוננות ולימוד בלבד — אינו פסק הלכה. יש לבדוק במקור.</div>
+      </div>
+    </div>`;
+  document.body.appendChild(el);
+  const close=()=>{ el.remove(); };
+  document.getElementById("sheetX").addEventListener("click",close);
+  el.addEventListener("click",e=>{ if(e.target===el) close(); });
+  el.querySelectorAll(".tab").forEach(t=>t.addEventListener("click",()=>{
+    el.querySelectorAll(".tab").forEach(x=>x.classList.remove("on"));
+    el.querySelectorAll(".pane").forEach(x=>x.classList.remove("on"));
+    t.classList.add("on");
+    const p=document.getElementById("p-"+t.dataset.t);
+    if(p) p.classList.add("on");
+  }));
+}
+
+/* ---------- מעבר לתפילין דרבינו תם וחזרה ---------- */
+function inRT(){ const s=state.flat[state.curIdx]; return !!(s && s.rt); }
+function hasRT(){ return state.flat.some(s=>s.rt); }
+function firstRT(){
+  let i = state.flat.findIndex(s=>s.rt && !state.done.has(s.i));
+  if(i<0) i = state.flat.findIndex(s=>s.rt);
+  return i;
+}
+/* מעבר בלי לסמן כלום — התפילה ממתינה במקום שעזבנו */
+function toggleRT(){
+  if(inRT()){
+    const back = (state.rtReturn!=null && state.flat[state.rtReturn]) ? state.rtReturn : 0;
+    state.rtReturn = null;
+    state.done.delete(back);
+    jumpTo(back,true);
+  } else {
+    const j = firstRT();
+    if(j<0) return;
+    state.rtReturn = state.curIdx;
+    state.done.delete(j);
+    jumpTo(j,true);
+  }
+  renderList(); tick(); rotateQuote(true);
+}
+
+/* סימון קטע כבוצע */
+function markDone(i){
+  state.done.add(i);
+  if(i===state.curIdx) advanceToNextOpen();
+  else { renderList(); tick(); }
+}
+
+/* סיום הקטע הנוכחי — הזמן שנחסך יורד מהמאזן */
+function completeCurrent(){
+  state.done.add(state.curIdx);
+  advanceToNextOpen();
+}
+
+function advanceToNextOpen(){
+  const wasRT = inRT();
+  let n=-1;
+  // קודם ממשיכים קדימה מהמקום הנוכחי
+  for(let j=state.curIdx+1;j<state.flat.length;j++){ if(!state.done.has(j)){ n=j; break; } }
+  // בסיום תפילין דר"ת — חוזרים למקום שעזבנו בתפילה
+  if(wasRT && (n<0 || !state.flat[n].rt) &&
+     state.rtReturn!=null && state.flat[state.rtReturn] && !state.done.has(state.rtReturn)){
+    n = state.rtReturn; state.rtReturn = null;
+  }
+  // ואם הכל מאחור בוצע — חוזרים לקטע הפתוח הראשון
+  if(n<0) for(let j=0;j<state.curIdx;j++){ if(!state.done.has(j)){ n=j; break; } }
+  if(n<0){ renderDone(false); return; }
+  jumpTo(n,true);
+  renderList(); tick(); rotateQuote(true);
+}
+
+function updateCurCard(){
+  const s=state.flat[state.curIdx]; if(!s) return;
+  const el=document.getElementById("curElapsed"), fill=document.getElementById("curBarFill");
+  const spent = nowRef()-(s._enteredTs||state.anchorTs);
+  const over = spent - s.dur;
+  if(el) el.textContent = fmt(spent) + (over>0 ? "  (+"+fmt(over)+")" : "");
+  if(el) el.className = "curElapsed" + (over>0 ? " over" : "");
+  if(fill){
+    const p=Math.min(100, spent/s.dur*100);
+    fill.style.width=p+"%";
+    fill.style.background = over>0 ? "#e0a06a" : "var(--gold)";
+  }
+  const n=document.getElementById("curNote");
+  if(n){
+    const manual = settings.autoAdv===false;
+    if(state.hold)      { n.textContent="📌 נעול — לא יתקדם לבד"; n.className="curNote hold"; }
+    else if(manual)     { n.textContent="מצב ידני — ההתקדמות רק בלחיצה"; n.className="curNote hold"; }
+    else if(over>0)     { n.textContent="הזמן המתוכנן נגמר — יעבור בקרוב. לנעילה: 📍"; n.className="curNote warn"; }
+    else                { n.textContent=""; n.className="curNote"; }
+  }
+}
+
+function tick(){
+  if(state.screen!=="prayer") return;
+  const clock = document.getElementById("clock");
+  if(!clock) return;
+  if(state.paused){
+    const pi=document.getElementById("pauseInfo");
+    if(pi) pi.textContent = "עברו "+fmt(elapsed())+" · "+state.flat[state.curIdx].name;
+    return;
+  }
+
+  const e = elapsed();          // השעון האמיתי
+  const p = planPos();          // המיקום בתכנון
+
+  // הזמן המתוכנן של הקטע הנוכחי נגמר? הוא נחשב שעבר, ועוברים לבא שלא בוצע
+  const s0 = state.flat[state.curIdx];
+  const autoOn = settings.autoAdv !== false && !state.hold;
+  if(s0 && p >= s0.end && autoOn){
+    state.done.add(state.curIdx);
+    advanceToNextOpen();   // שומר על סדר קדימה ועל החזרה מר"ת
+    return;                // advanceToNextOpen כבר מרענן ומחשב מחדש
+  }
+
+  // שעון: הזמן שבאמת עבר
+  clock.textContent = fmt(e);
+
+  // צפי לסיום = מה שעבר באמת + מה שנותר לפי התכנון
+  const remPlan = planRemaining();
+  const projected = e + remPlan;
+  const remEl = document.getElementById("remain");
+  remEl.textContent = remPlan>0
+    ? "נותרו כ־"+fmt(remPlan)+" · צפי סיום: "+Math.round(projected/60000)+" דק׳"
+    : "הגעת לסוף התכנון — קחו את הזמן, העיקר הכוונה";
+  clock.classList.toggle("over", projected > state.totalMs*1.15);
+
+  // מד קצב: הזמן שבאמת עבר מול הזמן המתוכנן של מה שכבר עברת
+  const diff = e - (state.totalMs - remPlan);
+  const paceEl = document.getElementById("pace");
+  if(paceEl){
+    if(Math.abs(diff) < 30000){
+      paceEl.textContent = "בקצב המתוכנן ✓";
+      paceEl.className = "pace ok";
+    } else if(diff < 0){
+      paceEl.textContent = "מקדים ב־"+fmt(-diff)+" — אפשר להאט ולכוון";
+      paceEl.className = "pace fast";
+    } else {
+      paceEl.textContent = "מאחר ב־"+fmt(diff)+" מהתכנון";
+      paceEl.className = "pace slow";
+    }
+  }
+
+  // שורת יציאות מהאפליקציה
+  const al=document.getElementById("awayLine");
+  if(al){
+    const aw=awayTotal();
+    al.textContent = aw ? "מחוץ לאפליקציה: "+fmt(aw)+" ב־"+state.away.length+" יציאות" : "";
+    al.className = "awayLine"+(aw?" on":"");
+  }
+
+  // התקדמות כללית = כמה קטעים כבר מאחורינו (לפי משקל הזמן)
+  let doneMs=0;
+  state.done.forEach(i=>{ doneMs += state.flat[i].dur; });
+  document.getElementById("bar").style.width =
+    Math.min(100, Math.max(0, doneMs/state.totalMs*100))+"%";
+
+  updateCurCard();
+  updateTextClock();
+}
+
+function rotateQuote(reset){
+  const q=document.getElementById("quote");
+  if(!q) return;
+  const sub = state.curIdx>=0 ? state.flat[state.curIdx] : null;
+  const pool = quotePool(sub?sub.id:null, sub?sub.grpName:null);
+  if(reset) state.quoteIdx = 0; else state.quoteIdx=(state.quoteIdx+1)%pool.length;
+  const [t,s]=pool[state.quoteIdx % pool.length];
+  q.classList.add("fade");
+  setTimeout(()=>{
+    const qt=document.getElementById("qText"), qs=document.getElementById("qSrc");
+    if(qt){ qt.textContent=t; qs.textContent="— "+s; }
+    q.classList.remove("fade");
+  },300);
+}
+
+/* ================= סיום ================= */
+function renderDone(aborted){
+  const totalReal = elapsed();
+  // סוגרים את הקטע האחרון ביומן
+  // בונים יומן סופי בלי לשנות את המצב — כדי שאפשר יהיה לחזור לתפילה
+  const finalLog = state.log.slice();
+  if(state.curIdx>=0 && state.flat[state.curIdx]){
+    const s=state.flat[state.curIdx];
+    const spent = nowRef()-(s._enteredTs||state.anchorTs);
+    if(spent>0) finalLog.push({i:state.curIdx, id:s.id, name:s.name, planned:s.dur, actual:spent, byUser:false});
+  }
+  // סוגרים יציאה פתוחה (אם סיימו מיד עם החזרה)
+  if(state.awayStart){
+    const ms=Date.now()-state.awayStart; state.awayStart=0;
+    if(ms>=AWAY_MIN) state.away.push({ms, at:Date.now(), sec:""});
+  }
+  clearTimers(); releaseWake();
+  state.screen="done";
+
+  // זמן בפועל לכל קטע (איחוד חזרות)
+  const spentBy={};
+  finalLog.forEach(r=>{ spentBy[r.i]=(spentBy[r.i]||0)+r.actual; });
+
+  // כל הקטעים שבוצעו — כולל כאלה שסומנו בהחלקה בלי לשהות בהם
+  const doneIdx = [...new Set([...state.done, state.curIdx])].sort((a,b)=>a-b)
+    .filter(i=>state.flat[i]);
+  const rows = doneIdx.map(i=>({
+    name: state.flat[i].name,
+    planned: state.flat[i].dur,
+    actual: spentBy[i]||0,
+    skipped: (spentBy[i]||0) < 2000
+  }));
+  const visited = rows.filter(r=>!r.skipped);
+
+  const plannedTotal = state.totalMs;
+  const dt = totalReal - plannedTotal;
+  const dtTxt = Math.abs(dt)<45000 ? "בדיוק לפי התכנון"
+    : (dt<0 ? "מהיר ב־"+fmt(-dt)+" מהמתוכנן" : "ארוך ב־"+fmt(dt)+" מהמתוכנן");
+
+  // הקטע שהכי התעכבו בו, והכי מיהרו בו (רק מבין אלה ששהית בהם)
+  let slowest=null, fastest=null;
+  visited.forEach(r=>{
+    const d = r.actual-r.planned;
+    if(!slowest || d>slowest.d) slowest={r,d};
+    if(!fastest || d<fastest.d) fastest={r,d};
+  });
+
+  const rowsHtml = rows.map(r=>{
+    if(r.skipped) return `<div class="logRow skip">
+      <div class="ln">${r.name}</div><div class="lt">—</div><div class="ld">סומן</div></div>`;
+    const d = r.actual-r.planned;
+    const cls = Math.abs(d)<15000 ? "ok" : (d<0 ? "fast" : "slow");
+    const sign = d<0 ? "−" : "+";
+    return `<div class="logRow">
+      <div class="ln">${r.name}</div>
+      <div class="lt">${fmt(r.actual)}</div>
+      <div class="ld ${cls}">${Math.abs(d)<15000?"✓":sign+fmt(Math.abs(d))}</div>
+    </div>`;
+  }).join("");
+
+  app.innerHTML = `<div style="padding-top:10px">
+    <div style="text-align:center">
+      <div style="font-size:2.3rem">🙏</div>
+      <h1>${aborted?"התפילה הופסקה":"יישר כוח!"}</h1>
+      <div class="big">${fmt(totalReal)}</div>
+      <div class="sub">${TEF_HE[state.tef]} · ${hebDateHe(new Date())}</div>
+      <div class="sub" style="margin-top:8px">מתוכנן: ${Math.round(plannedTotal/60000)} דק׳ · ${dtTxt}</div>
+      <div class="sub">${rows.length} מתוך ${state.flat.length} קטעים${rows.length>visited.length?` · ${rows.length-visited.length} סומנו`:""}</div>
+    </div>
+
+    ${(()=>{
+      const aw = awayTotal(), n = state.away.length;
+      if(!n) return `<div class="card focus good">
+        <div class="focusTop"><span>🎯 ריכוז</span><span class="focusBig">100%</span></div>
+        <div class="sub">לא יצאת מהאפליקציה אפילו פעם אחת. יישר כוח.</div></div>`;
+      const pct = Math.max(0, Math.round((1-aw/totalReal)*100));
+      const cls = pct>=90?"good":(pct>=70?"mid":"low");
+      const longest = state.away.reduce((a,x)=>x.ms>a.ms?x:a, state.away[0]);
+      return `<div class="card focus ${cls}">
+        <div class="focusTop"><span>🎯 ריכוז</span><span class="focusBig">${pct}%</span></div>
+        <div class="focusRow"><span>זמן מחוץ לאפליקציה</span><b>${fmt(aw)}</b></div>
+        <div class="focusRow"><span>מספר יציאות</span><b>${n}</b></div>
+        <div class="focusRow"><span>היציאה הארוכה</span><b>${fmt(longest.ms)}</b></div>
+        ${longest.sec?`<div class="sub" style="margin-top:8px">היציאה הארוכה היתה ב"${longest.sec}"</div>`:""}
+      </div>`;
+    })()}
+
+    ${slowest&&slowest.d>20000?`<div class="card"><div class="sub">התארכת במיוחד ב־</div>
+      <div style="font-size:1.05rem;margin-top:4px">${slowest.r.name}</div>
+      <div class="sub">${fmt(slowest.r.actual)} במקום ${fmt(slowest.r.planned)}</div></div>`:""}
+
+    ${fastest&&fastest.d<-20000?`<div class="card"><div class="sub">עברת הכי מהר ב־</div>
+      <div style="font-size:1.05rem;margin-top:4px">${fastest.r.name}</div>
+      <div class="sub">${fmt(fastest.r.actual)} במקום ${fmt(fastest.r.planned)} — אולי שווה לחזור לשם מחר בנחת</div></div>`:""}
+
+    <div class="card" style="padding:8px 10px">
+      <div class="logHead"><div>קטע</div><div>בפועל</div><div>מול התכנון</div></div>
+      ${rowsHtml || `<div class="sub" style="padding:10px">אין נתונים</div>`}
+    </div>
+
+    <div class="pasuk" style="text-align:center">יִהְיוּ לְרָצוֹן אִמְרֵי פִי וְהֶגְיוֹן לִבִּי לְפָנֶיךָ,<br>ה׳ צוּרִי וְגוֹאֲלִי</div>
+    <div style="text-align:center">
+      ${aborted?`<button class="homeBtn" id="resBtn">↩ חזרה לתפילה</button><br>`:""}
+      <button class="homeBtn" id="homeBtn" ${aborted?'style="background:var(--card2);color:var(--gold);border:1px solid var(--gold-soft);margin-top:10px"':""}>חזרה למסך הראשי</button>
+    </div>
+  </div>`;
+  const rs=document.getElementById("resBtn");
+  if(rs) rs.addEventListener("click",resumePrayer);
+  document.getElementById("homeBtn").addEventListener("click",()=>{
+    // יוצאים סופית — רק עכשיו נרשמת התפילה שהופסקה בהיסטוריה
+    if(state.pendingRec && state.pendingRec.ms>60000){ saveHistory(state.pendingRec); }
+    state.pendingRec=null; state.open=false; state.flat=[];
+    state.screen="home"; renderHome();
+  });
+
+  // שמירה בהיסטוריה — בסיום אמיתי מיד, ובהפסקה רק אם באמת ויתרו על החזרה
+  const rec = {
+    d: new Date().toISOString().slice(0,10),
+    t: state.tef, ms: totalReal, plan: plannedTotal,
+    away: awayTotal(), awayN: state.away.length,
+    secs: rows.length, total: state.flat.length, ab: !!aborted
+  };
+  if(!aborted){ state.open=false; saveHistory(rec); }
+  else { state.open = true; state.pendingRec = rec; }
+}
+
+function clearTimers(){
+  if(state.tickTimer){ clearInterval(state.tickTimer); state.tickTimer=null; }
+  if(state.quoteTimer){ clearInterval(state.quoteTimer); state.quoteTimer=null; }
+}
+
+/* מסך דולק בזמן תפילה */
+async function requestWake(){
+  try{ if("wakeLock" in navigator) state.wakeLock = await navigator.wakeLock.request("screen"); }catch(e){}
+}
+function releaseWake(){ try{ if(state.wakeLock){ state.wakeLock.release(); state.wakeLock=null; } }catch(e){} }
+/* ================= מעקב יציאות מהאפליקציה =================
+   בזמן תפילה: כשעוזבים את האפליקציה נרשם הזמן, וכשחוזרים
+   מחשבים כמה זמן מתוך התפילה עבר מחוץ לה. */
+const AWAY_MIN = 4000;   // פחות מזה — כנראה לא יציאה אמיתית
+
+document.addEventListener("visibilitychange",()=>{
+  if(state.screen!=="prayer") return;
+  if(document.visibilityState==="hidden"){
+    if(!state.paused) state.awayStart = Date.now();
+  } else {
+    requestWake();
+    if(state.awayStart){
+      const ms = Date.now()-state.awayStart;
+      state.awayStart = 0;
+      if(ms>=AWAY_MIN){
+        state.away.push({ms, at:Date.now(), sec:state.flat[state.curIdx]?state.flat[state.curIdx].name:""});
+        showReturn(ms);
+      }
+    }
+  }
+});
+
+function awayTotal(){ return state.away.reduce((a,x)=>a+x.ms,0); }
+
+function showReturn(ms){
+  if(document.getElementById("backOv")) return;
+  const total = awayTotal(), n = state.away.length;
+  const el=document.createElement("div");
+  el.className="backOv"; el.id="backOv";
+  el.innerHTML = `
+    <div class="backBox">
+      <div style="font-size:2.2rem">🕯</div>
+      <div class="backT">חזרת לתפילה</div>
+      <div class="backBig">${fmt(ms)}</div>
+      <div class="sub">היית מחוץ לאפליקציה</div>
+      ${n>1?`<div class="sub" style="margin-top:8px">סה״כ היום בתפילה זו: ${fmt(total)} ב־${n} יציאות</div>`:""}
+      <div class="backNm">${state.flat[state.curIdx].name}</div>
+      <button class="startBtn" id="backBtn" style="margin-top:16px">ממשיך להתפלל</button>
+    </div>`;
+  document.body.appendChild(el);
+  document.getElementById("backBtn").addEventListener("click",()=>el.remove());
+}
+
+/* ================= היסטוריית תפילות ================= */
+function loadHistory(){
+  try{ return JSON.parse(localStorage.getItem("mse-history")) || []; }catch(e){ return []; }
+}
+function saveHistory(rec){
+  try{
+    const h = loadHistory();
+    h.unshift(rec);
+    localStorage.setItem("mse-history", JSON.stringify(h.slice(0,60)));
+  }catch(e){}
+}
+function streakDays(){
+  const h = loadHistory();
+  if(!h.length) return 0;
+  const days = [...new Set(h.map(r=>r.d))].sort().reverse();
+  const today = new Date().toISOString().slice(0,10);
+  const yest = new Date(Date.now()-864e5).toISOString().slice(0,10);
+  if(days[0]!==today && days[0]!==yest) return 0;
+  let n=1, prev=new Date(days[0]);
+  for(let i=1;i<days.length;i++){
+    const d=new Date(days[i]);
+    if(Math.round((prev-d)/864e5)===1){ n++; prev=d; } else break;
+  }
+  return n;
+}
+
+/* ================= התקנה כאפליקציה ================= */
+let deferredInstall = null;
+window.addEventListener("beforeinstallprompt", e=>{
+  e.preventDefault();
+  deferredInstall = e;
+  wireInstall();
+});
+window.addEventListener("appinstalled", ()=>{
+  deferredInstall = null;
+  const b=document.getElementById("installBar"); if(b) b.classList.remove("show");
+});
+function wireInstall(){
+  const bar=document.getElementById("installBar");
+  if(!bar) return;
+  let dismissed=false;
+  try{ dismissed = localStorage.getItem("mse-install-x")==="1"; }catch(e){}
+  const standalone = window.matchMedia("(display-mode: standalone)").matches || navigator.standalone;
+  if(deferredInstall && !dismissed && !standalone) bar.classList.add("show");
+  const btn=document.getElementById("installBtn"), x=document.getElementById("installX");
+  if(btn) btn.onclick = async ()=>{
+    if(!deferredInstall) return;
+    deferredInstall.prompt();
+    await deferredInstall.userChoice;
+    deferredInstall = null;
+    bar.classList.remove("show");
+  };
+  if(x) x.onclick = ()=>{
+    try{ localStorage.setItem("mse-install-x","1"); }catch(e){}
+    bar.classList.remove("show");
+  };
+}
+
+/* עבודה גם בלי אינטרנט */
+if("serviceWorker" in navigator){
+  window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));
+}
+
+/* "אתה בטוח?" ביציאה מהאפליקציה באמצע תפילה.
+   פועל בסגירה/רענון; במעבר לאפליקציה אחרת המערכת אינה מאפשרת חלון אישור,
+   ולכן שם התזכורת מופיעה מיד כשחוזרים. */
+window.addEventListener("beforeunload", e=>{
+  if(state.screen==="prayer" && !state.paused){ e.preventDefault(); e.returnValue=""; }
+});
+/* חסימת "חזור" של אנדרואיד באמצע תפילה */
+window.addEventListener("popstate", ()=>{
+  if(state.screen==="prayer"){
+    history.pushState(null,"",location.href);
+    askExit();
+  }
+});
+try{ history.pushState(null,"",location.href); }catch(e){}
+
+/* קיצורי דרך מהאייקון: ?t=shacharit / mincha / maariv */
+(function(){
+  const t = new URLSearchParams(location.search).get("t");
+  if(t && ["shacharit","mincha","maariv","kriatShma"].includes(t) && new Date().getDay()!==6){
+    const f = dayFlags(new Date(), t==="maariv");
+    if(!f.yomtov){ startPrayer(t, t==="shacharit" ? settings.from : "", null, t==="shacharit" ? settings.to : ""); return; }
+  }
+  renderHome();
+})();
+</script>
+</body>
+</html>
