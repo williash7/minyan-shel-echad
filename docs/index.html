@@ -57,6 +57,9 @@
   .ico{background:var(--card2); border:1px solid var(--line); color:var(--text);
     border-radius:10px; width:40px; height:34px; font-size:1rem; cursor:pointer; line-height:1;}
   .ico:active{transform:scale(.94);}
+  .ico.resume{width:auto; padding:0 12px; background:var(--acc); color:#0d1321;
+    border-color:var(--acc); font-weight:700; animation:resPulse 1.4s ease-in-out infinite;}
+  @keyframes resPulse{0%,100%{opacity:1} 50%{opacity:.55}}
   .pauseOv{position:fixed; inset:0; background:rgba(13,19,33,.94); z-index:50;
     display:flex; align-items:center; justify-content:center; text-align:center;}
   .pauseBox{padding:24px;}
@@ -416,7 +419,7 @@
 <script>
 "use strict";
 /* ================= הגדרות ושמירה ================= */
-const DEF = {shacharit:40, mincha:15, maariv:12, kriatShma:6, israel:true, minyan:false, autoAdv:true, pace:false, shmaFull:false, view:"progress", ttPlace:"start", from:"", to:"", rt:true};
+const DEF = {shacharit:40, mincha:15, maariv:12, kriatShma:6, israel:true, minyan:false, autoAdv:true, pace:false, shmaFull:false, tefPause:true, view:"progress", ttPlace:"start", from:"", to:"", rt:true};
 let settings = loadSettings();
 function loadSettings(){
   try{ const s = JSON.parse(localStorage.getItem("mse-settings")); return Object.assign({},DEF,s||{}); }
@@ -424,7 +427,7 @@ function loadSettings(){
 }
 /* גרסת האפליקציה. חייבת להיות זהה לזו שב-texts.js — אם לא,
    סימן שאחד הקבצים לא הועלה והאפליקציה תתריע. */
-const APP_BUILD = "34";
+const APP_BUILD = "36";
 
 function buildInfo(){
   const t = (typeof TEXTS_BUILD!=="undefined") ? TEXTS_BUILD : null;
@@ -649,9 +652,19 @@ function buildStructure(tef, f){
   const grp=(name)=>{ const g={name, subs:[]}; G.push(g); return g; };
   /* משך הקטע נגזר ממספר המילים בנוסחו בפועל. המשקל הידני
      משמש רק כגיבוי לקטעים שאין להם נוסח בקובץ. */
+  /* קטעים שדורשים זמן מעבר לאמירת המילים — פסוק אישי, פסיעות,
+     המתנה לחזן. הערך הוא תוספת במשקל של מילים. */
+  const QUIET = {
+    netzor: 70,      // פסוק אישי · שלוש פסיעות לאחור ולפנים
+    kohanimSz: 40,   // המתנה בין הברכות
+    trBack: 30,      // הגבהה, גלילה והכנסת הספר
+    trOut: 30,       // הוצאת הספר והליכה
+    trOutMin: 30
+  };
   const add=(g,id,name,w,badge)=>{
     const words = (typeof WORDS!=="undefined" && WORDS[id]) || 0;
-    g.subs.push({id, name, w: words || w, words, badge:badge||null});
+    const quiet = QUIET[id] || 0;
+    g.subs.push({id, name, w: (words||w) + quiet, words, badge:badge||null});
   };
   const isMonThu = f.dow===1 || f.dow===4;
   const sy = SHIR_YOM[f.dow] || SHIR_YOM[0];
@@ -1478,7 +1491,7 @@ function viewSettings(){
                 `<div class="note">כל קבצי האפליקציה מאותה גרסה.</div>`}
     </div>
     <div class="card">
-      <label class="sw"><input type="checkbox" id="ilToggle" ${settings.israel?"checked":""}> אני מתפלל/ת בארץ ישראל</label>
+      <label class="sw"><input type="checkbox" id="ilToggle" ${settings.israel?"checked":""}> אני מתפלל בארץ ישראל</label>
       <div class="note">משפיע על "ותן טל ומטר", חול המועד, ימים טובים וברכת כהנים.</div>
     </div>
     <div class="card">
@@ -1497,6 +1510,8 @@ function viewSettings(){
     <div class="card">
       <label class="sw"><input type="checkbox" id="autoAdvToggle" ${settings.autoAdv!==false?"checked":""}> התקדמות אוטומטית בין קטעים</label>
       <div class="sub" style="margin:-6px 0 12px">כשכבוי, המעבר לקטע הבא רק בלחיצה שלך</div>
+      <label class="sw"><input type="checkbox" id="tefPauseToggle" ${settings.tefPause!==false?"checked":""}> עצירת שעון בהנחת תפילין</label>
+      <div class="sub" style="margin:-6px 0 12px">השעון נעצר בהגיעך לתפילין של רש״י ושל רבינו תם, וממשיך בלחיצה</div>
       <label class="sw"><input type="checkbox" id="shmaFullToggle" ${settings.shmaFull?"checked":""}> שמע שלמה בתפילת השחר</label>
       <div class="sub" style="margin:-6px 0 12px">מוסיף את והיה אם שמוע ואת ויאמר לשמע שלפני הקרבנות</div>
       <label class="sw"><input type="checkbox" id="paceToggle" ${settings.pace?"checked":""}> הארת המילים לפי הקצב</label>
@@ -1515,7 +1530,7 @@ function viewSettings(){
       <div class="note">מזיז את הקטעים למקום שבו אתה נוהג להניח.</div>
     </div>
     <div class="card">
-      <label class="sw"><input type="checkbox" id="rtToggle" ${settings.rt?"checked":""}> מניח/ה תפילין דרבינו תם</label>
+      <label class="sw"><input type="checkbox" id="rtToggle" ${settings.rt?"checked":""}> מניח תפילין דרבינו תם</label>
       <div class="note">מוסיף בסוף שחרית ק״ש, קדש לי, והיה כי יביאך ושש זכירות — עם מעבר מהיר אליהם באמצע התפילה.</div>
     </div>
     <div class="card">
@@ -1544,6 +1559,8 @@ function wireSettings(){
   }));
   const aa=document.getElementById("autoAdvToggle");
   if(aa) aa.addEventListener("change",()=>{ settings.autoAdv=aa.checked; saveSettings(); });
+  const tp=document.getElementById("tefPauseToggle");
+  if(tp) tp.addEventListener("change",()=>{ settings.tefPause=tp.checked; saveSettings(); });
   const sf=document.getElementById("shmaFullToggle");
   if(sf) sf.addEventListener("change",()=>{ settings.shmaFull=sf.checked; saveSettings(); });
   const pc=document.getElementById("paceToggle");
@@ -1617,7 +1634,7 @@ function startPrayer(tef, fromId, _unused, toArg){
   const now2 = Date.now();
   flat[0]._enteredTs = now2;
   state = Object.assign(state,{screen:"prayer", tef, groups, flat, flags:f, fromId:fromId||"",
-    startTs:now2, planAnchor:0, anchorTs:now2, log:[], done:new Set(), doneOpen:false, paceIdx:-1,
+    startTs:now2, planAnchor:0, anchorTs:now2, log:[], done:new Set(), doneOpen:false, paceIdx:-1, autoPaused:null,
     paused:false, pauseStart:0, rtReturn:null, away:[], awayStart:0, hold:false,
     totalMs, curIdx:0, quoteIdx:0});
 
@@ -1652,7 +1669,9 @@ function renderPause(){
   const ov=document.getElementById("pauseOv");
   if(ov) ov.style.display = (state.paused && !state.quietPause) ? "flex" : "none";
   const b=document.getElementById("pauseBtn");
-  if(b) b.textContent = state.paused ? "▶" : "⏸";
+  if(b){ b.textContent = state.paused ? "▶ המשך" : "⏸";
+         b.className = state.paused ? "ico resume" : "ico";
+         b.title = state.paused ? "המשך תפילה" : "השהיה"; }
   const badge=document.getElementById("pauseBadge");
   if(badge) badge.className = "pauseBadge" + (state.paused ? " on" : "");
   document.body.classList.toggle("isPaused", !!state.paused);
@@ -1832,6 +1851,42 @@ function jumpTo(i, byUser){
   state.hold = false;
   state.flat[i]._enteredTs = now2;
   state.curIdx = i;
+  maybeAutoPause(state.flat[i]);
+}
+
+/* הנחת תפילין לוקחת זמן שאינו אמירה. כשמגיעים לקטע כזה השעון
+   נעצר מעצמו, וממשיך כשמודיעים שסיימת להניח. */
+const PAUSE_AT = {
+  tefillin: "הנח תפילין של רש״י",
+  rtShma:   "החלף לתפילין דרבינו תם"
+};
+
+function maybeAutoPause(s){
+  if(!s || settings.tefPause === false) return;
+  if(!PAUSE_AT[s.id]) return;
+  if(state.autoPaused === s.id) return;      // כבר נעצרנו כאן
+  state.autoPaused = s.id;
+  if(!state.paused) togglePause(true);
+  showTefPrompt(PAUSE_AT[s.id]);
+}
+
+function showTefPrompt(msg){
+  if(document.getElementById("tefOv")) return;
+  const el=document.createElement("div");
+  el.className="pauseOv"; el.id="tefOv"; el.style.display="flex";
+  el.innerHTML=`
+    <div class="pauseBox">
+      <div style="font-size:2.2rem">⏸</div>
+      <div style="font-size:1.1rem;margin:12px 0 6px">${msg}</div>
+      <div class="sub">השעון עצור. המשך כשתסיים.</div>
+      <button class="startBtn" id="tefGo" style="margin-top:20px;width:100%">
+        הנחתי — ממשיך בתפילה</button>
+    </div>`;
+  document.body.appendChild(el);
+  document.getElementById("tefGo").addEventListener("click",()=>{
+    el.remove();
+    if(state.paused) togglePause(true);
+  });
 }
 
 function renderPrayer(){
@@ -2481,7 +2536,7 @@ function tick(){
   const remEl = document.getElementById("remain");
   remEl.textContent = remPlan>0
     ? "נותרו כ־"+fmt(remPlan)+" · סיום בשעה "+clockAt(remPlan)
-    : "הגעת לסוף התכנון — קחו את הזמן, העיקר הכוונה";
+    : "הגעת לסוף התכנון — קח את הזמן, העיקר הכוונה";
   clock.classList.toggle("over", projected > state.totalMs*1.15);
 
   // מד קצב: הזמן שבאמת עבר מול הזמן המתוכנן של מה שכבר עברת
