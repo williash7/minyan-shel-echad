@@ -307,7 +307,8 @@
   .fineBtn.sel{background:var(--gold); color:#0d1321; border-color:var(--gold); font-weight:600;}
   .segGrp{display:block; font-size:.7em; opacity:.6; margin-top:2px;}
   /* הארת מילים לפי הקצב */
-  .pw{transition:color .18s, background .18s; border-radius:4px;}
+  .pw{transition:color .18s, background .18s; border-radius:4px; cursor:pointer;}
+  .pw:active{background:rgba(212,175,55,.28);}
   .pw.past{color:var(--dim);}
   .pw.now{color:#0d1321; background:var(--gold); padding:1px 3px; font-weight:600;}
   .panSec{color:var(--gold); font-size:.82rem; margin:16px 0 6px; padding-top:10px;
@@ -423,7 +424,7 @@ function loadSettings(){
 }
 /* גרסת האפליקציה. חייבת להיות זהה לזו שב-texts.js — אם לא,
    סימן שאחד הקבצים לא הועלה והאפליקציה תתריע. */
-const APP_BUILD = "33";
+const APP_BUILD = "34";
 
 function buildInfo(){
   const t = (typeof TEXTS_BUILD!=="undefined") ? TEXTS_BUILD : null;
@@ -2015,6 +2016,13 @@ function renderList(){
     if(d>0) completeCurrent();
     else if(state.curIdx>0) goBack(state.curIdx-1);
   }));
+  /* לחיצה על מילה — מזיזה את הקצב אליה. מאזינים על המכל, כך
+     שזה עובד גם אחרי שהטקסט מתרענן. */
+  const pb=document.getElementById("panBody");
+  if(pb) pb.addEventListener("click",e=>{
+    const w = e.target.closest && e.target.closest(".pw");
+    if(w) setPaceWord(Number(w.dataset.w));
+  });
   wrap.querySelectorAll("[data-fs]").forEach(b=>b.addEventListener("click",()=>{
     let z=Math.max(.8,Math.min(2.2, fsize()+parseInt(b.dataset.fs,10)*0.1));
     try{ localStorage.setItem("mse-fs",z); }catch(e){}
@@ -2180,6 +2188,22 @@ function jumpToWord(){
   state.paceIdx = -1;
   showFollowBtn(false);
   paceUpdate();
+}
+
+/* לחיצה על מילה מזיזה את הקצב אליה — קדימה אם דילגת, אחורה אם
+   פספסת. השעון עצמו ממשיך; רק המיקום בתכנון נע. */
+function setPaceWord(idx){
+  const s = state.flat[state.curIdx];
+  const body = document.getElementById("panBody");
+  if(!s || !body) return;
+  const n = body.querySelectorAll(".pw").length;
+  if(!n) return;
+  state.planAnchor = s.start + Math.max(0, Math.min(n-1, idx)) * (s.dur / n);
+  state.anchorTs = state.paused ? state.pauseStart : Date.now();
+  state.userScrollTs = 0;
+  state.paceIdx = -1;
+  showFollowBtn(false);
+  renderList(); tick();
 }
 
 function panelHtml(s){
