@@ -1,0 +1,25 @@
+{
+  "name": "מניין של אחד — עוזר תפילה ליחיד",
+  "short_name": "מניין של אחד",
+  "description": "עוזר תפילה למתפלל ביחיד: קצב אישי, לוח עברי, ותזכורות הזכרות. נוסח חב\"ד.",
+  "lang": "he",
+  "dir": "rtl",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0d1321",
+  "theme_color": "#0d1321",
+  "categories": ["lifestyle", "productivity"],
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icon-maskable-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+    { "src": "icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "שחרית", "short_name": "שחרית", "url": "./index.html?t=shacharit", "icons": [{ "src": "icon-192.png", "sizes": "192x192" }] },
+    { "name": "מנחה",  "short_name": "מנחה",  "url": "./index.html?t=mincha",   "icons": [{ "src": "icon-192.png", "sizes": "192x192" }] },
+    { "name": "ערבית", "short_name": "ערבית", "url": "./index.html?t=maariv",   "icons": [{ "src": "icon-192.png", "sizes": "192x192" }] }
+  ]
+}
