@@ -18,6 +18,7 @@ from map_shacharit import (SHACHARIT, MINCHA, MAARIV, KRIAT_SHMA,
 NIK = re.compile(r'[֑-ׇ]')
 HEBL = re.compile(r'[א-ת]')
 SRC = 'src/siddur-fixed.txt'
+VERSION = '32'
 OUT = 'app/texts.js'
 
 # הוראות ארוכות מדי אינן מסייעות בתוך תפילה
@@ -235,6 +236,14 @@ def count_words(paras):
     return total
 
 
+def emit_build(texts, days, version):
+    """חתימה שמאפשרת לוודא מהאפליקציה עצמה שכל הקבצים עודכנו יחד."""
+    words = sum(count_words(v) for v in texts.values())
+    return ('\n/* חתימת הבנייה — לבדיקה שכל הקבצים מאותה גרסה */\n'
+            'const TEXTS_BUILD = {v:"%s", sections:%d, words:%d};\n'
+            % (version, len(texts), words))
+
+
 def emit_weights(texts, days):
     w = {k: count_words(v) for k, v in texts.items()}
     # שיר של יום — ממוצע הימים, שכן הקטע מתחלף
@@ -265,17 +274,20 @@ if __name__ == '__main__':
     days = [[lines[n].strip() for n in day if lines[n].strip()]
             for day in SHIR_YOM_LINES]
     omer = [lines[n].strip() for n in OMER_LINES]
-    out = (emit(texts) + '\n' + emit_weights(texts, days) + emit_shir(days) +
+    out = (emit(texts) + '\n' + emit_build(texts, days, VERSION) +
+           emit_weights(texts, days) + emit_shir(days) +
            '\n/* ספירת העומר — מ״ט הימים */\nconst OMER_DAYS = ' +
            json.dumps(omer, ensure_ascii=False) + ';\n' +
            '\nif (typeof window !== "undefined") {\n'
            '  window.TEXTS = TEXTS;\n'
            '  window.SHIR_YOM_TEXTS = SHIR_YOM_TEXTS;\n'
            '  window.OMER_DAYS = OMER_DAYS;\n'
-           '  window.WORDS = WORDS;\n}\n')
+           '  window.WORDS = WORDS;\n'
+           '  window.TEXTS_BUILD = TEXTS_BUILD;\n}\n')
     open(OUT, 'w', encoding='utf-8').write(out)
     n_par = sum(len(v) for v in texts.values())
     n_hint = sum(1 for v in texts.values() for p in v if p.startswith('§'))
     print('קטעים:', len(texts))
     print('פסקאות:', n_par, '| מתוכן הוראות:', n_hint)
     print('שיר של יום:', [len(d) for d in days])
+    print('גרסה:', VERSION)

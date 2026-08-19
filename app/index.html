@@ -270,6 +270,12 @@
   .panBody{padding:16px 16px 6px; max-height:52vh; overflow-y:auto; -webkit-overflow-scrolling:touch;}
   .panBody .tP{margin:0 0 16px; line-height:2.05; text-align:justify;}
   .panBody .tHint{margin:0 0 12px;}
+  /* חתימת הגרסה */
+  .buildCard.ok{border-color:#2c4a2c;}
+  .buildCard.bad{border-color:#5a2a2a; background:#2a1616;}
+  .buildLine{font-size:.85rem; color:var(--dim); font-variant-numeric:tabular-nums;}
+  .buildCard.ok .buildLine{color:#9ccf9c;}
+  .buildCard.bad .buildLine{color:#f0a0a0; font-weight:600;}
   /* עצירה שקטה — המסך נשאר גלוי */
   .pauseBadge{display:none; margin:8px auto 0; padding:5px 14px; border-radius:999px;
     font-size:.78rem; background:#3a2f12; color:var(--gold); border:1px solid #5c4a1a;}
@@ -409,6 +415,23 @@ function loadSettings(){
   try{ const s = JSON.parse(localStorage.getItem("mse-settings")); return Object.assign({},DEF,s||{}); }
   catch(e){ return Object.assign({},DEF); }
 }
+/* גרסת האפליקציה. חייבת להיות זהה לזו שב-texts.js — אם לא,
+   סימן שאחד הקבצים לא הועלה והאפליקציה תתריע. */
+const APP_BUILD = "32";
+
+function buildInfo(){
+  const t = (typeof TEXTS_BUILD!=="undefined") ? TEXTS_BUILD : null;
+  const ok = t && t.v === APP_BUILD;
+  return {
+    ok,
+    line: t ? `גרסה ${APP_BUILD} · ${t.sections} קטעים · ${t.words.toLocaleString("he")} מילים`
+            : `גרסה ${APP_BUILD} · קובץ הנוסח לא נטען`,
+    warn: t && !ok
+      ? `אי-התאמה: האפליקציה בגרסה ${APP_BUILD} אבל קובץ הנוסח בגרסה ${t.v}. יש לרענן את הדף.`
+      : (t ? "" : "קובץ הנוסח חסר.")
+  };
+}
+
 function saveSettings(){ try{ localStorage.setItem("mse-settings", JSON.stringify(settings)); }catch(e){} }
 
 /* ================= לוח עברי (Intl) ================= */
@@ -1439,8 +1462,14 @@ function wireHistory(){
 
 /* ---------- לשונית הגדרות ---------- */
 function viewSettings(){
+  const bi = buildInfo();
   return `
     <h1>⚙️ הגדרות</h1>
+    <div class="card buildCard ${bi.ok?"ok":"bad"}">
+      <div class="buildLine">${bi.ok?"✓":"⚠"} ${bi.line}</div>
+      ${bi.warn?`<div class="note" style="color:#f0a0a0">${bi.warn}</div>`:
+                `<div class="note">כל קבצי האפליקציה מאותה גרסה.</div>`}
+    </div>
     <div class="card">
       <label class="sw"><input type="checkbox" id="ilToggle" ${settings.israel?"checked":""}> אני מתפלל/ת בארץ ישראל</label>
       <div class="note">משפיע על "ותן טל ומטר", חול המועד, ימים טובים וברכת כהנים.</div>

@@ -1158,6 +1158,9 @@ msTefillin: [
 
 };
 
+/* חתימת הבנייה — לבדיקה שכל הקבצים מאותה גרסה */
+const TEXTS_BUILD = {v:"32", sections:151, words:19254};
+
 /* משקל כל קטע — מספר המילים בנוסח שלו.
    ממנו נגזר הזמן שכל קטע מקבל מתוך משך התפילה. */
 const WORDS = {
@@ -1333,4 +1336,5 @@ if (typeof window !== "undefined") {
   window.SHIR_YOM_TEXTS = SHIR_YOM_TEXTS;
   window.OMER_DAYS = OMER_DAYS;
   window.WORDS = WORDS;
+  window.TEXTS_BUILD = TEXTS_BUILD;
 }
