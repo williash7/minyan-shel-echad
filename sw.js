@@ -1,6 +1,6 @@
 /* מניין של אחד — service worker
    שומר את האפליקציה במכשיר כדי שתעבוד גם בלי אינטרנט. */
-const CACHE = "mse-v27";
+const CACHE = "mse-v28";
 const FILES = [
   "./",
   "./index.html",

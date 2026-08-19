@@ -270,6 +270,10 @@
   .panBody{padding:16px 16px 6px; max-height:52vh; overflow-y:auto; -webkit-overflow-scrolling:touch;}
   .panBody .tP{margin:0 0 16px; line-height:2.05; text-align:justify;}
   .panBody .tHint{margin:0 0 12px;}
+  /* הארת מילים לפי הקצב */
+  .pw{transition:color .18s, background .18s; border-radius:4px;}
+  .pw.past{color:var(--dim);}
+  .pw.now{color:#0d1321; background:var(--gold); padding:1px 3px; font-weight:600;}
   .panSec{color:var(--gold); font-size:.82rem; margin:16px 0 6px; padding-top:10px;
     border-top:1px solid var(--line);}
   .panEmpty{color:var(--dim); text-align:center; padding:22px 10px; line-height:1.7; font-size:.9rem;}
@@ -375,7 +379,7 @@
 <script>
 "use strict";
 /* ================= הגדרות ושמירה ================= */
-const DEF = {shacharit:40, mincha:15, maariv:12, kriatShma:6, israel:true, minyan:false, autoAdv:true, view:"progress", ttPlace:"start", from:"", to:"", rt:true};
+const DEF = {shacharit:40, mincha:15, maariv:12, kriatShma:6, israel:true, minyan:false, autoAdv:true, pace:false, view:"progress", ttPlace:"start", from:"", to:"", rt:true};
 let settings = loadSettings();
 function loadSettings(){
   try{ const s = JSON.parse(localStorage.getItem("mse-settings")); return Object.assign({},DEF,s||{}); }
@@ -589,7 +593,12 @@ const SHIR_YOM = [
 function buildStructure(tef, f){
   const G=[];
   const grp=(name)=>{ const g={name, subs:[]}; G.push(g); return g; };
-  const add=(g,id,name,w,badge)=>g.subs.push({id,name,w,badge:badge||null});
+  /* משך הקטע נגזר ממספר המילים בנוסחו בפועל. המשקל הידני
+     משמש רק כגיבוי לקטעים שאין להם נוסח בקובץ. */
+  const add=(g,id,name,w,badge)=>{
+    const words = (typeof WORDS!=="undefined" && WORDS[id]) || 0;
+    g.subs.push({id, name, w: words || w, words, badge:badge||null});
+  };
   const isMonThu = f.dow===1 || f.dow===4;
   const sy = SHIR_YOM[f.dow] || SHIR_YOM[0];
   const M = !!settings.minyan;
@@ -629,7 +638,7 @@ function buildStructure(tef, f){
     add(g,"deshen","תְּרוּמַת הַדֶּשֶׁן",3);
     if(f.tachanun) add(g,"yrTamid","יְהִי רָצוֹן — שֶׁיִּבָּנֶה בֵּית הַמִּקְדָּשׁ",1.6,"רק בימי תחנון");
     add(g,"tamid","פָּרָשַׁת הַתָּמִיד",4);
-    add(g,"ketoretP","פָּרָשַׁת הַקְּטֹרֶת — וַיֹּאמֶר ה׳ אֶל מֹשֶׁה",2.2);
+    add(g,"ketoretP","אַתָּה הוּא ה׳ · וַיֹּאמֶר ה׳ אֶל מֹשֶׁה",2.2);
     add(g,"ketoret","תָּנוּ רַבָּנָן — פִּטּוּם הַקְּטֹרֶת",3.6);
     add(g,"ketoretB","רַבָּן שִׁמְעוֹן בֶּן גַּמְלִיאֵל · תַּנְיָא רַבִּי נָתָן",2.2);
     add(g,"tzvaot","ה׳ צְבָאוֹת עִמָּנוּ · וְעָרְבָה",1.6,"ג״פ");
@@ -694,11 +703,10 @@ function buildStructure(tef, f){
       if(M) add(g,"yudGimel","וַיַּעֲבֹר · י״ג מִדּוֹת",1,"מניין");
       add(g,"ledavid","לְדָוִד אֵלֶיךָ ה' נַפְשִׁי אֶשָּׂא",2.5);
       if(isMonThu){
-        add(g,"vhu1","וְהוּא רַחוּם · אָבִינוּ מַלְכֵּנוּ · הַטֵּה אֱלֹהַי אָזְנְךָ",8,"שני וחמישי");
-        add(g,"vhu2","אָנָּא מֶלֶךְ · אֵין כָּמוֹךָ · הַפּוֹתֵחַ יָד בִּתְשׁוּבָה",7,"שני וחמישי");
-        add(g,"vhu3","ה׳ אֱלֹהֵי יִשְׂרָאֵל שׁוּב מֵחֲרוֹן אַפֶּךָ",6,"שני וחמישי");
-        add(g,"shomer","שׁוֹמֵר יִשְׂרָאֵל",1.5,"שני וחמישי");
-        add(g,"mitratze","מִתְרַצֶּה בְּרַחֲמִים",0.5,"שני וחמישי");
+        add(g,"vhu1","וְהוּא רַחוּם · הַטֵּה אֱלֹהַי אָזְנְךָ · אָנָּא מֶלֶךְ",8,"שני וחמישי");
+        add(g,"vhu2","אֵין כָּמוֹךָ · הַפּוֹתֵחַ יָד · הַבֵּט מִשָּׁמַיִם",7,"שני וחמישי");
+        add(g,"vhu3","זָרִים אוֹמְרִים · חוּסָה · קוֹלֵנוּ תִשְׁמַע · עָזְרֵנוּ",6,"שני וחמישי");
+        add(g,"shomer","שׁוֹמֵר יִשְׂרָאֵל · מִתְרַצֶּה בְּרַחֲמִים",1.5,"שני וחמישי");
       }
       if(f.aseretYemeiTeshuva || f.fast) add(g,"avinu","אָבִינוּ מַלְכֵּנוּ",3,f.fast?"תענית":"עשי״ת");
       add(g,"avinuYomi","אָבִינוּ מַלְכֵּנוּ אָבִינוּ אָתָּה",0.6);
@@ -726,7 +734,7 @@ function buildStructure(tef, f){
       if(f.tachanun) add(g,"tfilaledavid","תְּפִלָּה לְדָוִד — הַטֵּה ה׳ אָזְנְךָ",2.5);
       add(g,"beityaakov","בֵּית יַעֲקֹב · יְהִי ה׳ אֱלֹהֵינוּ עִמָּנוּ",1.2);
       add(g,"shirHamaalot","שִׁיר הַמַּעֲלוֹת — לוּלֵי ה׳ שֶׁהָיָה לָנוּ",1);
-      add(g,"shirshelyom","שִׁיר שֶׁל יוֹם — "+sy.n, sy.w, sy.p);
+      add(g,"shirshelyom","שִׁיר שֶׁל יוֹם · "+sy.n, sy.w, sy.p);
       if(f.roshChodesh) add(g,"barchi","בָּרְכִי נַפְשִׁי",3,"ראש חודש");
       if(f.ledavidOri) add(g,"ledavidori","לְדָוִד ה׳ אוֹרִי וְיִשְׁעִי",2,"אלול–הו״ר");
       if(M) add(g,"kdYatom0","קַדִּישׁ יָתוֹם",1,"מניין");
@@ -737,7 +745,7 @@ function buildStructure(tef, f){
       g=grp("קריאת התורה");
       add(g,"trOut","הוֹצָאַת סֵפֶר תּוֹרָה — וַיְהִי בִּנְסֹעַ · בְּרִיךְ שְׁמֵהּ · גַּדְּלוּ",9,f.torah.why);
       add(g,"trRead","קְרִיאַת הַתּוֹרָה — "+f.torah.n+" עוֹלִים", f.torah.n===4?48:40);
-      add(g,"trBack","חֲצִי קַדִּישׁ · הַגְבָּהָה · יְהַלְלוּ · הַכְנָסַת הַסֵּפֶר",11);
+      add(g,"trBack","וְזֹאת הַתּוֹרָה · יְהַלְלוּ · הַכְנָסַת הַסֵּפֶר",11);
     }
 
     g=grp("אשרי · ובא לציון");
@@ -1031,7 +1039,7 @@ function quotePool(subId, grpName){
    2. מיקום בתכנון (planPos) — איפה אנחנו "אמורים" להיות ברצף הקטעים.
    נגיעה על קטע מזיזה רק את מיקום התכנון. סיימת קטע מוקדם? הצפי לסיום מתקצר. */
 let state = {screen:"home", tab:"pray", wiz:null, tef:null, groups:[], flat:[], startTs:0,
-  planAnchor:0, anchorTs:0, log:[], done:new Set(), doneOpen:false,
+  planAnchor:0, anchorTs:0, log:[], done:new Set(), doneOpen:false, paceIdx:-1,
   away:[], awayStart:0, hold:false, upOpen:false,
   totalMs:0, curIdx:-1, quoteIdx:0, quoteTimer:null, tickTimer:null, wakeLock:null, flags:null};
 
@@ -1042,11 +1050,12 @@ function fmt(ms){
   const s=Math.floor(ms/1000), m=Math.floor(s/60), r=s%60;
   return (neg?"+":"")+String(m).padStart(2,"0")+":"+String(r).padStart(2,"0");
 }
+/* זמן מתוכנן — מדויק לשנייה, בלי עיגול */
 function fmtMin(ms){
-  const m = ms/60000;
-  if(m>=9.5) return Math.round(m)+" דק׳";
-  if(m>=1) return (Math.round(m*2)/2).toLocaleString("he")+" דק׳";
-  return Math.max(5,Math.round(ms/1000/5)*5)+" שנ׳";
+  const s = Math.round(ms/1000);
+  if(s < 60) return s+" שנ׳";
+  const m = Math.floor(s/60), r = s%60;
+  return r ? m+":"+String(r).padStart(2,"0")+" דק׳" : m+" דק׳";
 }
 
 /* ================= מסך הבית ================= */
@@ -1399,6 +1408,9 @@ function viewSettings(){
     </div>
     <div class="card">
       <label class="sw"><input type="checkbox" id="autoAdvToggle" ${settings.autoAdv!==false?"checked":""}> התקדמות אוטומטית בין קטעים</label>
+      <div class="sub" style="margin:-6px 0 12px">כשכבוי, המעבר לקטע הבא רק בלחיצה שלך</div>
+      <label class="sw"><input type="checkbox" id="paceToggle" ${settings.pace?"checked":""}> הארת המילים לפי הקצב</label>
+      <div class="sub" style="margin:-6px 0 12px">כל מילה מוארת בתורה, לפי חלקה בזמן הקטע. פועל בתצוגת נוסח התפילה</div>
       <div class="note">כשמכובה — הקטע לא יתחלף לבד אף פעם, וההתקדמות רק בלחיצה על "סיימתי".
       גם כשמופעל אפשר לנעול קטע בודד בכפתור 📍 שבכרטיס.</div>
     </div>
@@ -1442,6 +1454,10 @@ function wireSettings(){
   }));
   const aa=document.getElementById("autoAdvToggle");
   if(aa) aa.addEventListener("change",()=>{ settings.autoAdv=aa.checked; saveSettings(); });
+  const pc=document.getElementById("paceToggle");
+  if(pc) pc.addEventListener("change",()=>{
+    settings.pace=pc.checked; state.paceIdx=-1; saveSettings();
+  });
   document.querySelectorAll("[data-tt]").forEach(c=>c.addEventListener("click",()=>{
     settings.ttPlace=c.dataset.tt; saveSettings(); renderHome();
   }));
@@ -1509,7 +1525,7 @@ function startPrayer(tef, fromId, _unused, toArg){
   const now2 = Date.now();
   flat[0]._enteredTs = now2;
   state = Object.assign(state,{screen:"prayer", tef, groups, flat, flags:f, fromId:fromId||"",
-    startTs:now2, planAnchor:0, anchorTs:now2, log:[], done:new Set(), doneOpen:false,
+    startTs:now2, planAnchor:0, anchorTs:now2, log:[], done:new Set(), doneOpen:false, paceIdx:-1,
     paused:false, pauseStart:0, rtReturn:null, away:[], awayStart:0, hold:false,
     totalMs, curIdx:0, quoteIdx:0});
 
@@ -1911,6 +1927,32 @@ function textFor(id){
   return t ? applyCond(t) : t;
 }
 
+/* ===== הארת מילים לפי הקצב =====
+   מחלק את זמן הקטע במספר המילים שבו, ומאיר אותן בזה אחר זה.
+   ההארה נגזרת מהמיקום בתכנון, כך שהיא נשארת מסונכרנת גם אחרי
+   דילוג, חזרה או השהיה. */
+function paceUpdate(){
+  if(!settings.pace || settings.view!=="text") return;
+  const body = document.getElementById("panBody");
+  if(!body) return;
+  const words = body.querySelectorAll(".pw");
+  if(!words.length) return;
+  const s = state.flat[state.curIdx];
+  if(!s || !s.dur) return;
+
+  const into = Math.max(0, planPos() - s.start);
+  const idx  = Math.min(words.length-1, Math.floor(into / (s.dur/words.length)));
+
+  if(state.paceIdx === idx) return;      // אין שינוי — לא נוגעים ב-DOM
+  state.paceIdx = idx;
+  words.forEach((w,i)=>{
+    w.classList.toggle("now",  i===idx);
+    w.classList.toggle("past", i<idx);
+  });
+  const cur = words[idx];
+  if(cur && cur.scrollIntoView) cur.scrollIntoView({block:"center", behavior:"smooth"});
+}
+
 function panelHtml(s){
   const mode = settings.view || "progress";
   if(mode==="progress") return "";
@@ -1922,9 +1964,17 @@ function panelHtml(s){
     </div>`;
   if(mode==="text"){
     const t = textFor(s.id);
+    /* במצב קצב כל מילה עטופה, כדי שנוכל להאיר אותן לפי הסדר */
+    let wi = -1;
+    const wrap = p => settings.pace
+      ? p.split(/(\s+)/).map(tok=>{
+          if(!/\S/.test(tok)) return tok;
+          wi++; return `<span class="pw" data-w="${wi}">${tok}</span>`;
+        }).join("")
+      : p;
     const body = t ? t.map(p=>p.indexOf("§")===0
         ? `<div class="tHint">${p.slice(1).trim()}</div>`
-        : `<p class="tP">${p}</p>`).join("")
+        : `<p class="tP">${wrap(p)}</p>`).join("")
       : `<div class="panEmpty">הנוסח של קטע זה עדיין לא הוכנס לאפליקציה.<br>
          <span class="sub">בינתיים מהסידור — והקצב כאן ממשיך לעבוד.</span></div>`;
     return `<div class="panel" id="panel">
@@ -1937,6 +1987,7 @@ function panelHtml(s){
       ${nav}
     </div>`;
   }
+
   // מידע
   const c = CONTENT[s.id];
   if(!c) return `<div class="panel"><div class="panEmpty">אין מידע לקטע זה.</div>${nav}</div>`;
@@ -2169,6 +2220,7 @@ function tick(){
 
   // שעון: הזמן שבאמת עבר
   clock.textContent = fmt(e);
+  paceUpdate();
 
   // צפי לסיום = מה שעבר באמת + מה שנותר לפי התכנון
   const remPlan = planRemaining();
