@@ -276,6 +276,12 @@
   .buildLine{font-size:.85rem; color:var(--dim); font-variant-numeric:tabular-nums;}
   .buildCard.ok .buildLine{color:#9ccf9c;}
   .buildCard.bad .buildLine{color:#f0a0a0; font-weight:600;}
+  /* חזרה למילה הנוכחית — צף מעל התוכן בזמן עיון */
+  .followBtn{display:none; position:fixed; inset-inline:0; bottom:74px; margin:0 auto;
+    width:max-content; padding:9px 18px; border-radius:999px; z-index:40;
+    background:var(--gold); color:#0d1321; font-size:.82rem; font-weight:600;
+    border:none; box-shadow:0 4px 14px rgba(0,0,0,.45);}
+  .followBtn.on{display:block;}
   /* עצירה שקטה — המסך נשאר גלוי */
   .pauseBadge{display:none; margin:8px auto 0; padding:5px 14px; border-radius:999px;
     font-size:.78rem; background:#3a2f12; color:var(--gold); border:1px solid #5c4a1a;}
@@ -417,7 +423,7 @@ function loadSettings(){
 }
 /* גרסת האפליקציה. חייבת להיות זהה לזו שב-texts.js — אם לא,
    סימן שאחד הקבצים לא הועלה והאפליקציה תתריע. */
-const APP_BUILD = "32";
+const APP_BUILD = "33";
 
 function buildInfo(){
   const t = (typeof TEXTS_BUILD!=="undefined") ? TEXTS_BUILD : null;
@@ -1871,12 +1877,15 @@ function renderPrayer(){
     <div class="quote" id="quote"><div class="q" id="qText"></div><div class="s" id="qSrc"></div></div>
     <div id="listWrap"></div>
     <div class="hint">נגיעה על קטע = "אני אוחז כאן" · החלקה הצידה = בוצע</div>
-    <button class="finishBtn" id="finBtn">סיימתי את התפילה ✔</button>`;
+    <button class="finishBtn" id="finBtn">סיימתי את התפילה ✔</button>
+    <button class="followBtn" id="followBtn">↓ חזרה למילה הנוכחית</button>`;
 
   document.querySelectorAll("[data-rate]").forEach(b=>b.addEventListener("click",()=>{
     adjustPace(Number(b.dataset.rate));
   }));
   document.getElementById("cfgBtn").addEventListener("click",quickCfg);
+  const fb=document.getElementById("followBtn");
+  if(fb) fb.addEventListener("click",jumpToWord);
   document.getElementById("exitBtn").addEventListener("click",askExit);
   document.getElementById("finBtn").addEventListener("click",()=>renderDone(false));
   document.getElementById("pauseBtn").addEventListener("click",()=>togglePause(true));
@@ -2116,6 +2125,11 @@ function textFor(id){
   return t ? applyCond(t) : t;
 }
 
+/* מזהה גלילה ידנית, כדי שההארה לא תחטוף את המסך בזמן עיון.
+   מסמנים גם מגע ולא רק גלילה, כי המגע קודם לתנועה. */
+["wheel","touchstart","touchmove"].forEach(ev=>
+  window.addEventListener(ev, ()=>{ state.userScrollTs = Date.now(); }, {passive:true}));
+
 /* ===== הארת מילים לפי הקצב =====
    מחלק את זמן הקטע במספר המילים שבו, ומאיר אותן בזה אחר זה.
    ההארה נגזרת מהמיקום בתכנון, כך שהיא נשארת מסונכרנת גם אחרי
@@ -2138,8 +2152,34 @@ function paceUpdate(){
     w.classList.toggle("now",  i===idx);
     w.classList.toggle("past", i<idx);
   });
+
+  /* גלילה אוטומטית רק כשהיא באמת נחוצה, ולא בזמן שגוללים ידנית.
+     אחרת המסך נחטף חזרה כמה פעמים בשנייה ואי אפשר לעיין. */
   const cur = words[idx];
-  if(cur && cur.scrollIntoView) cur.scrollIntoView({block:"center", behavior:"smooth"});
+  if(!cur || !cur.getBoundingClientRect) return;
+  if(Date.now() - (state.userScrollTs||0) < 6000){
+    showFollowBtn(true);                 // המשתמש מעיין — מציעים לחזור
+    return;
+  }
+  showFollowBtn(false);
+  const r = cur.getBoundingClientRect();
+  const top = window.innerHeight * 0.25, bot = window.innerHeight * 0.72;
+  if(r.top < top || r.bottom > bot){
+    cur.scrollIntoView({block:"center", behavior:"smooth"});
+  }
+}
+
+/* כפתור "חזרה למילה" — מופיע רק כשגללת בעצמך */
+function showFollowBtn(on){
+  const b = document.getElementById("followBtn");
+  if(b) b.className = "followBtn" + (on ? " on" : "");
+}
+
+function jumpToWord(){
+  state.userScrollTs = 0;
+  state.paceIdx = -1;
+  showFollowBtn(false);
+  paceUpdate();
 }
 
 function panelHtml(s){
